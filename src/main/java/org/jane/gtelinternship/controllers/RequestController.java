@@ -25,7 +25,7 @@ public class RequestController {
         headers.set(header.getKey(), header.getValue());
       }
 
-      HttpMethod method = switch (dto.getTypeRequete()) {
+      HttpMethod method = switch (dto.getTypeRequest()) {
         case 2 -> HttpMethod.POST;
         case 3 -> HttpMethod.PUT;
         case 4 -> HttpMethod.PATCH;
@@ -33,7 +33,7 @@ public class RequestController {
         default -> HttpMethod.GET;
       };
 
-      UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(dto.getRequete());
+      UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(dto.getRequest());
       if (dto.getParams() != null && method == HttpMethod.GET) {
         dto.getParams().forEach(builder::queryParam);
       }

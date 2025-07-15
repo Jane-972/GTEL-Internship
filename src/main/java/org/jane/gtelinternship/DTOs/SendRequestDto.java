@@ -6,8 +6,8 @@ import java.util.Map;
 
 @Data
 public class SendRequestDto {
-  private String requete;
-  private Integer typeRequete;
+  private String request;
+  private Integer typeRequest;
   private List<HeaderDto> headers;
   private Map<String, String> params;
 

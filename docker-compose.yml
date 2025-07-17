@@ -1,12 +1,10 @@
-version: '3'
 services:
   db:
-    image: mysql
+    image: postgres:13
     container_name: gtelintern
-    ports:
-      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: wafae
-      MYSQL_DATABASE: gtelintern
-
-
+      POSTGRES_USER: jane
+      POSTGRES_PASSWORD: jane
+      POSTGRES_DB: gtelintern
+    ports:
+      - "15432:5432"

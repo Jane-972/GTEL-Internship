@@ -17,17 +17,13 @@ public record UserInputDto(
   String email,
 
   @NotNull(message = "Password is required")
-  String password,
-
-  @NotNull(message = "Password is required")
-  String passwordConfirmation
+  String password
 ) {
   public CreateUserModel toModel() {
     return new CreateUserModel(
       this.name,
       this.email,
-      this.password,
-      this.passwordConfirmation
+      this.password
     );
   }
 }

@@ -7,7 +7,6 @@ public record UserModel(
   String name,
   String email,
   String password,
-  String passwordConfirmation,
   String image,
   boolean isActive,
   LocalDateTime emailVerifiedAt,

@@ -31,6 +31,16 @@ dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
+    // test/containers
+    testImplementation("com.playtika.testcontainers:embedded-postgresql:3.1.13")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-bootstrap:4.2.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Docker
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
 }

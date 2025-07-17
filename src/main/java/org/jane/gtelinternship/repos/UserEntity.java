@@ -22,9 +22,6 @@ public class UserEntity {
   @Column(nullable = false)
   private String password;
 
-  @Transient // not stored in DB
-  private String passwordConfirmation;
-
   @Column(nullable = false)
   private String image = "profile.jpg";
 
@@ -38,13 +35,12 @@ public class UserEntity {
   public UserEntity() {
   }
 
-  public UserEntity(Long id, String name, String email, String password, String passwordConfirmation,
+  public UserEntity(Long id, String name, String email, String password,
                     String image, boolean isActive, LocalDateTime emailVerifiedAt, String rememberToken) {
     this.id = id;
     this.name = name;
     this.email = email;
     this.password = password;
-    this.passwordConfirmation = passwordConfirmation;
     this.image = image;
     this.isActive = isActive;
     this.emailVerifiedAt = emailVerifiedAt;
@@ -57,7 +53,6 @@ public class UserEntity {
       name,
       email,
       password,
-      passwordConfirmation,
       image,
       isActive,
       emailVerifiedAt,

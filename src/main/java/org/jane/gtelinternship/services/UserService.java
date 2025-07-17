@@ -4,6 +4,8 @@ import org.jane.gtelinternship.models.CreateUserModel;
 import org.jane.gtelinternship.models.UserModel;
 import org.jane.gtelinternship.repos.UserEntity;
 import org.jane.gtelinternship.repos.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,11 +13,11 @@ import java.util.List;
 @Service
 public class UserService {
 
-  private final UserRepo userRepo;
+  @Autowired
+  private UserRepo userRepo;
 
-  public UserService(UserRepo userRepo) {
-    this.userRepo = userRepo;
-  }
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   public List<UserModel> getAllUsers() {
     return userRepo.findAll().stream()
@@ -24,12 +26,12 @@ public class UserService {
   }
 
   public UserModel createUser(CreateUserModel userModel) {
+    String hashedPassword = passwordEncoder.encode(userModel.password());
     UserEntity entity = new UserEntity(
       null,
       userModel.name(),
       userModel.email(),
-      userModel.password(),
-      userModel.passwordConfirmation(),
+      hashedPassword,
       "profile.jpg",
       true,
       null,

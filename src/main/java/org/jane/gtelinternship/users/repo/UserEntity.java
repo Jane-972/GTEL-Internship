@@ -1,6 +1,7 @@
 package org.jane.gtelinternship.users.repo;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.jane.gtelinternship.users.domain.model.UserModel;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @Entity(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class UserEntity {

@@ -15,7 +15,5 @@ public class UpdateUserRequestDto {
   @Size(min = 6)
   private String password;
 
-  private String type;
-
   private String image;
 }

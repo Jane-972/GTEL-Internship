@@ -8,7 +8,5 @@ public record UserModel(
   String email,
   String password,
   String image,
-  boolean isActive,
-  LocalDateTime emailVerifiedAt,
-  String rememberToken
+  boolean isActive
 ) {}

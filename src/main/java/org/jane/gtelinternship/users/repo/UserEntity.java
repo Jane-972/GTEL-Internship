@@ -28,23 +28,18 @@ public class UserEntity {
   @Column(nullable = false)
   private boolean isActive = true;
 
-  private LocalDateTime emailVerifiedAt;
-
-  private String rememberToken;
 
   public UserEntity() {
   }
 
   public UserEntity(Long id, String name, String email, String password,
-                    String image, boolean isActive, LocalDateTime emailVerifiedAt, String rememberToken) {
+                    String image, boolean isActive) {
     this.id = id;
     this.name = name;
     this.email = email;
     this.password = password;
     this.image = image;
     this.isActive = isActive;
-    this.emailVerifiedAt = emailVerifiedAt;
-    this.rememberToken = rememberToken;
   }
 
   public UserModel toModel() {
@@ -54,9 +49,7 @@ public class UserEntity {
       email,
       password,
       image,
-      isActive,
-      emailVerifiedAt,
-      rememberToken
+      isActive
     );
   }
 

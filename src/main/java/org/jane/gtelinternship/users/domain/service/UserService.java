@@ -33,9 +33,7 @@ public class UserService {
       userModel.email(),
       hashedPassword,
       "profile.jpg",
-      true,
-      null,
-      null
+      true
     );
 
     return userRepo.save(entity).toModel();

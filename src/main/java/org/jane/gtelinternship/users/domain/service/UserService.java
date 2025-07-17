@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class UserService {
@@ -19,11 +19,11 @@ public class UserService {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
-  public List<UserModel> getAllUsers() {
+  public Stream<UserModel> getAllUsers() {
     return userRepo.findAll().stream()
-      .map(UserEntity::toModel)
-      .toList();
+      .map(UserEntity::toModel);
   }
+
 
   public UserModel createUser(CreateUserModel userModel) {
     String hashedPassword = passwordEncoder.encode(userModel.password());

@@ -32,11 +32,11 @@ public class UserController {
 
   @GetMapping
   public List<UserOutputDto> getAllUsers() {
-    List<UserModel> userModels = userService.getAllUsers();
-    return userModels.stream()
+    return userService.getAllUsers()
       .map(UserOutputDto::fromModel)
-      .collect(Collectors.toList());
+      .toList();
   }
+
 
   @PatchMapping("/{id}")
   public UserModel updateUser(@PathVariable long id, @RequestBody UserModel userModel) {

@@ -1,7 +1,7 @@
-package org.jane.gtelinternship.repos;
+package org.jane.gtelinternship.users.repo;
 
 import jakarta.persistence.*;
-import org.jane.gtelinternship.models.UserModel;
+import org.jane.gtelinternship.users.domain.model.UserModel;
 
 import java.time.LocalDateTime;
 

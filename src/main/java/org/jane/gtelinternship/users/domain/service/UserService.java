@@ -1,9 +1,9 @@
-package org.jane.gtelinternship.services;
+package org.jane.gtelinternship.users.domain.service;
 
-import org.jane.gtelinternship.models.CreateUserModel;
-import org.jane.gtelinternship.models.UserModel;
-import org.jane.gtelinternship.repos.UserEntity;
-import org.jane.gtelinternship.repos.UserRepo;
+import org.jane.gtelinternship.users.domain.model.CreateUserModel;
+import org.jane.gtelinternship.users.domain.model.UserModel;
+import org.jane.gtelinternship.users.repo.UserEntity;
+import org.jane.gtelinternship.users.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

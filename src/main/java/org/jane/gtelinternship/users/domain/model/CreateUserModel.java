@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.models;
+package org.jane.gtelinternship.users.domain.model;
 
 public record CreateUserModel(
   String name,

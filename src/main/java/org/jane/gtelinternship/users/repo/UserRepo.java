@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.repos;
+package org.jane.gtelinternship.users.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

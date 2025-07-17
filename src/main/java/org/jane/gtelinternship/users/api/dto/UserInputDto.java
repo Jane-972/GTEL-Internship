@@ -1,6 +1,6 @@
-package org.jane.gtelinternship.DTOs;
+package org.jane.gtelinternship.users.api.dto;
 
-import org.jane.gtelinternship.models.CreateUserModel;
+import org.jane.gtelinternship.users.domain.model.CreateUserModel;
 
 
 import jakarta.validation.constraints.Email;

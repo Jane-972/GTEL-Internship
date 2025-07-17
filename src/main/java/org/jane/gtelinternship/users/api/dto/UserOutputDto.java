@@ -1,7 +1,7 @@
-package org.jane.gtelinternship.DTOs;
+package org.jane.gtelinternship.users.api.dto;
 
 
-import org.jane.gtelinternship.models.UserModel;
+import org.jane.gtelinternship.users.domain.model.UserModel;
 
 
 public record UserOutputDto(

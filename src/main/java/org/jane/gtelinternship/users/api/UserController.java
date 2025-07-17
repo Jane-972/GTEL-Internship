@@ -1,10 +1,10 @@
-package org.jane.gtelinternship.controllers;
+package org.jane.gtelinternship.users.api;
 
 import jakarta.validation.Valid;
-import org.jane.gtelinternship.DTOs.UserInputDto;
-import org.jane.gtelinternship.DTOs.UserOutputDto;
-import org.jane.gtelinternship.models.UserModel;
-import org.jane.gtelinternship.services.UserService;
+import org.jane.gtelinternship.users.api.dto.UserInputDto;
+import org.jane.gtelinternship.users.api.dto.UserOutputDto;
+import org.jane.gtelinternship.users.domain.model.UserModel;
+import org.jane.gtelinternship.users.domain.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

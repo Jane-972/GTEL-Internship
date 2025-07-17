@@ -1,69 +1,51 @@
 package org.jane.gtelinternship.users.repo;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.jane.gtelinternship.users.domain.model.UserModel;
+import org.jane.gtelinternship.users.domain.model.UserRole;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
-@Entity
-@Table(name = "users")
+
+@Getter
+@Setter
+@Entity(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class UserEntity {
-
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
-  @Column(nullable = false)
-  private String name;
-
-  @Column(nullable = false, unique = true)
-  private String email;
-
-  @Column(nullable = false)
-  private String password;
-
-  @Column(nullable = false)
-  private String image = "profile.jpg";
-
-  @Column(nullable = false)
-  private boolean isActive = true;
-
+  protected UUID id;
+  protected String firstName;
+  protected String lastName;
+  protected String email;
+  protected String password;
+  protected boolean approved;
+  @Enumerated(EnumType.STRING)
+  protected UserRole role;
 
   public UserEntity() {
   }
 
-  public UserEntity(Long id, String name, String email, String password,
-                    String image, boolean isActive) {
+  public UserEntity(UUID id, String firstName, String lastName, String email, String password, UserRole role, Boolean isApproved) {
     this.id = id;
-    this.name = name;
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.email = email;
     this.password = password;
-    this.image = image;
-    this.isActive = isActive;
+    this.role = role;
+    this.approved = isApproved;
   }
 
   public UserModel toModel() {
     return new UserModel(
-      id,
-      name,
-      email,
-      password,
-      image,
-      isActive
+            id,
+            firstName,
+            lastName,
+            email,
+            password,
+            approved,
+            role
     );
   }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-
 }

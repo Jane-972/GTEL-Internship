@@ -1,8 +1,9 @@
 package org.jane.gtelinternship.users.domain.model;
 
 public record CreateUserModel(
-  String name,
-  String email,
-  String password
+        String firstName,
+        String lastName,
+        String email,
+        String password
 ) {
 }

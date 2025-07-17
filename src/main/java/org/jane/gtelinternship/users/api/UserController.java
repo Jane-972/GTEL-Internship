@@ -1,58 +1,56 @@
 package org.jane.gtelinternship.users.api;
 
 import jakarta.validation.Valid;
-import org.jane.gtelinternship.users.api.dto.UserInputDto;
-import org.jane.gtelinternship.users.api.dto.UserOutputDto;
+import org.jane.gtelinternship.users.api.dto.UserInputDTO;
+import org.jane.gtelinternship.users.api.dto.UserOutputDTO;
+import org.jane.gtelinternship.users.api.dto.UserPatchDTO;
+import org.jane.gtelinternship.users.domain.model.CreateUserModel;
 import org.jane.gtelinternship.users.domain.model.UserModel;
 import org.jane.gtelinternship.users.domain.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.security.Principal;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+  private final UserService userService;
 
-  @Autowired
-  private UserService userService;
+  public UserController(UserService userService) {
+    this.userService = userService;
+  }
 
-  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public UserOutputDto createUser(@RequestBody @Valid UserInputDto userInputDTO) {
-
-    UserModel savedUserModel = userService.createUser(userInputDTO.toModel());
-
-    return UserOutputDto.fromModel(savedUserModel);
+  @PostMapping
+  public UserOutputDTO addUser(@RequestBody @Valid UserInputDTO input) {
+    CreateUserModel model = input.toModel();
+    UserModel savedUser = userService.createUser(model);
+    return UserOutputDTO.fromModel(savedUser);
   }
 
-  @GetMapping
-  public List<UserOutputDto> getAllUsers() {
+  @GetMapping()
+  public Stream<UserOutputDTO> getAllUsers() {
     return userService.getAllUsers()
-      .map(UserOutputDto::fromModel)
-      .toList();
+            .stream()
+            .map(UserOutputDTO::fromModel);
   }
 
 
-  @PatchMapping("/{id}")
-  public UserModel updateUser(@PathVariable long id, @RequestBody UserModel userModel) {
-    UserModel updatedUser = userService.updateUser(id, userModel);
-    if (updatedUser == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    }
-    return updatedUser;
+  @PatchMapping("{id}")
+  public UserOutputDTO updateUserProfile(
+          @PathVariable UUID id,
+          @RequestBody UserPatchDTO updateRequest
+  ) {
+    UserModel updatedUser = userService.updateUserProfile(id, updateRequest.toModel());
+    return UserOutputDTO.fromModel(updatedUser);
   }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteUser(@PathVariable long id) {
-    boolean isDeleted = userService.deleteUser(id);
-    if (!isDeleted) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    }
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).body("User deleted successfully");
+  @GetMapping("/me")
+  public UserOutputDTO getProfile(Principal principal) {
+    UserModel user = userService.getCurrentUser(principal);
+    return UserOutputDTO.fromModel(user);
   }
 }

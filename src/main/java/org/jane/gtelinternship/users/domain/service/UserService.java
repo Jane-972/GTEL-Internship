@@ -1,69 +1,48 @@
 package org.jane.gtelinternship.users.domain.service;
 
 import org.jane.gtelinternship.users.domain.model.CreateUserModel;
+import org.jane.gtelinternship.users.domain.model.PatchUserModel;
 import org.jane.gtelinternship.users.domain.model.UserModel;
-import org.jane.gtelinternship.users.repo.UserEntity;
-import org.jane.gtelinternship.users.repo.UserRepo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.jane.gtelinternship.users.domain.model.UserRole;
+import org.jane.gtelinternship.users.repo.UserStorageFacade;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Stream;
+import java.security.Principal;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
+    private final UserStorageFacade userStorageFacade;
 
-  @Autowired
-  private UserRepo userRepo;
+    public UserService(UserStorageFacade userStorageFacade) {
+        this.userStorageFacade = userStorageFacade;
+    }
 
-  @Autowired
-  private PasswordEncoder passwordEncoder;
+    public UserModel createUser(CreateUserModel userModel) {
+        boolean isFirstUser = userStorageFacade.isFirstUser();
+        UserRole role = isFirstUser ? UserRole.ADMIN : UserRole.USER;
 
-  public Stream<UserModel> getAllUsers() {
-    return userRepo.findAll().stream()
-      .map(UserEntity::toModel);
-  }
+        return userStorageFacade.storeUser(
+                userModel,
+                role,
+                isFirstUser
+        );
+    }
 
+    public List<UserModel> getAllUsers() {
+        return userStorageFacade.fetchAllUsers();
+    }
 
-  public UserModel createUser(CreateUserModel userModel) {
-    String hashedPassword = passwordEncoder.encode(userModel.password());
-    UserEntity entity = new UserEntity(
-      null,
-      userModel.name(),
-      userModel.email(),
-      hashedPassword,
-      "profile.jpg",
-      true
-    );
+    public UserModel approveUser(UUID userId) {
+        return userStorageFacade.updateUserApproval(userId, true);
+    }
 
-    return userRepo.save(entity).toModel();
-  }
+    public UserModel getCurrentUser(Principal principal) {
+        return userStorageFacade.fetchUserById(UUID.fromString(principal.getName()));
+    }
 
-
-  public UserModel updateUser(long id, UserModel updatedModel) {
-    return userRepo.findById(id)
-      .map(userEntity -> {
-        if (updatedModel.name() != null) {
-          userEntity.setName(updatedModel.name());
-        }
-        if (updatedModel.email() != null) {
-          userEntity.setEmail(updatedModel.email());
-        }
-        if (updatedModel.password() != null) {
-          userEntity.setPassword(updatedModel.password());
-        }
-        UserEntity updatedEntity = userRepo.save(userEntity);
-        return updatedEntity.toModel();
-      })
-      .orElse(null); // return null if not found
-  }
-
-  public boolean deleteUser(long id) {
-    return userRepo.findById(id)
-      .map(employeeEntity -> {
-        userRepo.delete(employeeEntity);
-        return true;
-      })
-      .orElse(false);
-  }
+    public UserModel updateUserProfile(UUID userId, PatchUserModel updateRequest) {
+        return userStorageFacade.updateUserProfile(userId, updateRequest);
+    }
 }

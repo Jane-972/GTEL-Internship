@@ -1,12 +1,14 @@
 package org.jane.gtelinternship.users.domain.model;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UserModel(
-  Long id,
-  String name,
-  String email,
-  String password,
-  String image,
-  boolean isActive
-) {}
+    UUID id,
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+    boolean approved,
+    UserRole role
+) {
+}

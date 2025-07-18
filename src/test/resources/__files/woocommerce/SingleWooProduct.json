@@ -1,0 +1,20 @@
+{
+  "id": 123,
+  "sku": "SKU123",
+  "name": "Sample Product",
+  "shortDescription": "A short description of the product.",
+  "inStock": true,
+  "stockQuantity": 50,
+  "salePrice": 19.99,
+  "regularPrice": 24.99,
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "attribute1Name": "Color",
+  "attribute1Value": "Red",
+  "attribute2Name": "Size",
+  "attribute2Value": "Medium",
+  "attribute3Name": "Material",
+  "attribute3Value": "Cotton"
+}

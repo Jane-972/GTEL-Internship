@@ -43,11 +43,18 @@ dependencies {
     testImplementation("org.springframework.cloud:spring-cloud-starter-bootstrap:4.2.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 
     // Docker
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
+    }
 }
 
 tasks.withType<Test> {

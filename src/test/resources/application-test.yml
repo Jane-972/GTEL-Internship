@@ -1,3 +1,9 @@
 server:
   port: 9090
   address: localhost
+
+woocommerce:
+  api:
+    url: https://fake-woocommerce.test
+    key: fakeKey
+    secret: fakeSecret

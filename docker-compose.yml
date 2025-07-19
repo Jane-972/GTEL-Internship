@@ -1,10 +1,10 @@
 services:
   db:
     image: postgres:13
-    container_name: gtelintern
+    container_name: gtel_internship
     environment:
       POSTGRES_USER: jane
       POSTGRES_PASSWORD: jane
-      POSTGRES_DB: gtelintern
+      POSTGRES_DB: gtel_internship
     ports:
       - "15432:5432"

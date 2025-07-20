@@ -1,6 +1,7 @@
-package org.jane.gtelinternship.stockupdater.api.dto.logicom;
+package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
-import org.jane.gtelinternship.product.infra.client.logicom.dto.LogicomInventoryDto;
+import org.jane.gtelinternship.stockupdater.api.dto.logicom.LogicomPriceDto;
+import org.jane.gtelinternship.stockupdater.api.dto.logicom.LogicomSpecificationDto;
 
 import java.util.List;
 

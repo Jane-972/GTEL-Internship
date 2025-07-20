@@ -1,6 +1,6 @@
 package org.jane.gtelinternship.stockupdater.domain.service;
 
-import org.jane.gtelinternship.stockupdater.api.dto.WooProductDto;
+import org.jane.gtelinternship.product.infra.client.woo.dto.WooProductDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;

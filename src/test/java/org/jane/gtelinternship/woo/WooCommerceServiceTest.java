@@ -1,6 +1,6 @@
 package org.jane.gtelinternship.woo;
 
-import org.jane.gtelinternship.stockupdater.api.dto.WooProductDto;
+import org.jane.gtelinternship.product.infra.client.woo.dto.WooProductDto;
 import org.jane.gtelinternship.stockupdater.domain.service.WooCommerceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

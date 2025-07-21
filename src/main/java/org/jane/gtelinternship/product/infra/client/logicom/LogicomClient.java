@@ -22,7 +22,7 @@ public class LogicomClient {
   public ProductInventory getProductInventory(List<String> skus) {
     var dto = logicomRestClient.get()
       .uri(uriBuilder -> uriBuilder
-        .path("/api/GetInventory/")
+        .path("/api/GetInventory")
         .queryParam("ProductID", String.join(";", skus))
         .build())
       .headers(headers -> createLogicomHeaders(config))

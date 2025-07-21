@@ -27,12 +27,8 @@ class LogicomClientIT extends IntegrationTestBase {
         .withBodyFile("logicom/GetInventory/ProductsSuccess.json"))
     );
 
-    try {
-      var result = logicomClient.getProductInventory(testSkus);
-      assertEquals(2, result.products().size());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    var result = logicomClient.getProductInventory(testSkus);
+    assertEquals(3, result.products().size());
   }
 
   private static final List<String> testSkus = List.of("1C7D2EA", "189T0AA");

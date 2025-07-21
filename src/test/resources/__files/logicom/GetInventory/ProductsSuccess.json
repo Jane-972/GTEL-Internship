@@ -5,10 +5,12 @@
     {
       "SKU": "1C7D2EA",
       "Inventory": "0",
-      "PO": {
-        "Quantity": "100",
-        "PO Delivery Date": "05-01-2023"
-      }
+      "PO": [
+        {
+          "Quantity": "100",
+          "PO Delivery Date": "05-01-2023"
+        }
+      ]
     },
     {
       "SKU": "189T0AA",
@@ -17,10 +19,16 @@
     {
       "SKU": "1C7D2EA",
       "Inventory": "0",
-      "PO": {
-        "Quantity": "100",
-        "PO Delivery Date": "05-01-2023"
-      }
+      "PO": [
+        {
+          "Quantity": "100",
+          "PO Delivery Date": "05-01-2023"
+        },
+        {
+          "Quantity": "80",
+          "PO Delivery Date": "05-02-2024"
+        }
+      ]
     }
   ]
 }

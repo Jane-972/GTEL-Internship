@@ -36,6 +36,11 @@ public class TokenProvider {
     this.lastRefreshMillis = null;
   }
 
+  public void setToken(String s) {
+    this.accessToken = s;
+    this.lastRefreshMillis = dateTimeProvider.getInstant().toEpochMilli();
+  }
+
   public synchronized void refreshTokens() {
     try {
       String bCode = encrypt(config.getAccessTokenKey(), config.getConsumerKey() + ";" + config.getConsumerSecret());

@@ -3,6 +3,7 @@ package org.jane.gtelinternship;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jane.gtelinternship.common.service.DateTimeProvider;
 import org.jane.gtelinternship.common.service.UuidGenerator;
+import org.jane.gtelinternship.product.infra.client.logicom.TokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
 public abstract class IntegrationTestBase {
-  // July 21, 2025 7:48:26 PM
-  protected static Instant now = Instant.ofEpochSecond(1753127306L);
   @Autowired
   protected MockMvc mvc;
   @MockitoBean
@@ -39,6 +38,11 @@ public abstract class IntegrationTestBase {
   protected DateTimeProvider dateTimeProvider;
   @MockitoBean
   protected PasswordEncoder userPasswordEncoder;
+  protected static final String TEST_TOKEN = "access-token";
+  // July 21, 2025 7:48:26 PM
+  protected static Instant now = Instant.ofEpochSecond(1753127306L);
+  @Autowired
+  protected TokenProvider tokenProvider;
 
   @BeforeEach
   void setUp() {
@@ -48,5 +52,7 @@ public abstract class IntegrationTestBase {
       .thenAnswer((invocation) -> invocation.getArgument(0) + "_encoded");
 
     Mockito.when(dateTimeProvider.getInstant()).thenReturn(now);
+
+    tokenProvider.setToken(TEST_TOKEN);
   }
 }

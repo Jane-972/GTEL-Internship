@@ -12,11 +12,9 @@ import static org.jane.gtelinternship.product.infra.client.logicom.dto.Inventory
 @Service
 public class LogicomClient {
   private final RestClient logicomRestClient;
-  private final LogicomAuthenticationService authenticationService;
 
-  public LogicomClient(RestClient logicomRestClient, LogicomAuthenticationService authenticationService) {
+  public LogicomClient(RestClient logicomRestClient) {
     this.logicomRestClient = logicomRestClient;
-    this.authenticationService = authenticationService;
   }
 
   public ProductInventory getProductInventory(List<String> skus) {
@@ -25,7 +23,6 @@ public class LogicomClient {
         .path("/api/GetInventory")
         .queryParam("ProductID", String.join(";", skus))
         .build())
-      .headers(headers -> authenticationService.buildHeaders())
       .retrieve()
       .body(InventoryResponseDto.class);
 

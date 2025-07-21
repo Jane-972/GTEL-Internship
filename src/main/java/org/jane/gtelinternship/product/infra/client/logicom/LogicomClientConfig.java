@@ -1,6 +1,7 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
 import lombok.Getter;
+import org.jane.gtelinternship.common.service.DateTimeProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,10 +31,10 @@ public class LogicomClientConfig {
   }
 
   @Bean
-  public RestClient logicomRestClient(TokenProvider tokenProvider) {
+  public RestClient logicomRestClient(TokenProvider tokenProvider, DateTimeProvider dateTimeProvider) {
     return RestClient.builder()
       .baseUrl(baseUrl)
-      .requestInterceptor(new TokenRefreshInterceptor(tokenProvider))
+      .requestInterceptor(new TokenInterceptor(tokenProvider, this, dateTimeProvider))
       .build();
   }
 }

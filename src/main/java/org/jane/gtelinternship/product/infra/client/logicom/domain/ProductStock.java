@@ -1,0 +1,19 @@
+package org.jane.gtelinternship.product.infra.client.logicom.domain;
+
+import java.util.List;
+
+public record ProductStock(
+  String sku,
+  int availableQuantity,
+  List<PurchaseOrder> incomingOrders
+) {
+  public boolean isInStock() {
+    return availableQuantity > 0;
+  }
+
+  public int totalIncomingQuantity() {
+    return incomingOrders.stream()
+      .mapToInt(PurchaseOrder::quantity)
+      .sum();
+  }
+}

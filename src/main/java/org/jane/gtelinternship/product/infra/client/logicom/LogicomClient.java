@@ -25,7 +25,7 @@ public class LogicomClient {
         .path("/api/GetInventory/")
         .queryParam("ProductID", String.join(";", skus))
         .build())
-      .headers(_ -> createLogicomHeaders(config))
+      .headers(headers -> createLogicomHeaders(config))
       .retrieve()
       .body(LogicomInventoryDto.class);
 

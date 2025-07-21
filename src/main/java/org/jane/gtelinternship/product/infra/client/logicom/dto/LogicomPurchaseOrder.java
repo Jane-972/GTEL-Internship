@@ -1,6 +1,7 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jane.gtelinternship.product.infra.client.logicom.domain.PurchaseOrder;
 
 public record LogicomPurchaseOrder(
   @JsonProperty("Quantity") String quantity,
@@ -12,5 +13,13 @@ public record LogicomPurchaseOrder(
     } catch (NumberFormatException e) {
       return 0;
     }
+  }
+
+  public PurchaseOrder toModel() {
+    return new PurchaseOrder(
+      "PO-" + hashCode(),
+      getQuantity(),
+      poDeliveryDate()
+    );
   }
 }

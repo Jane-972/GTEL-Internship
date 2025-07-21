@@ -1,7 +1,8 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jane.gtelinternship.product.infra.client.logicom.domain.ProductStock;
+import org.jane.gtelinternship.product.infra.client.logicom.domain.PurchaseOrder;
 
 import java.util.List;
 
@@ -16,5 +17,20 @@ public record LogicomProductInventory(
     } catch (NumberFormatException e) {
       return 0;
     }
+  }
+
+  public ProductStock toModel() {
+    List<PurchaseOrder> orders;
+
+    if (po() != null) {
+      orders = po()
+        .stream()
+        .map(LogicomPurchaseOrder::toModel)
+        .toList();
+    } else {
+      orders = List.of();
+    }
+
+    return new ProductStock(sku, getInventory(), orders);
   }
 }

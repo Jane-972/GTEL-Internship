@@ -12,7 +12,7 @@ public class LogicomHeadersUtil {
     var requestTimeStamp = System.currentTimeMillis();
 
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", config.getAccessToken());
+//    headers.set("Authorization", config.getAccessToken());
     headers.set("Timestamp", String.valueOf(requestTimeStamp));
     headers.set("Signature", generateSignature(config, requestTimeStamp));
     headers.set("CustomerID", String.valueOf(config.getCustomerId()));
@@ -21,7 +21,7 @@ public class LogicomHeadersUtil {
 
   private static String generateSignature(LogicomClientConfig config, long timestamp) {
     try {
-      String data = config.getAccessToken() + timestamp;
+      String data = /*config.getAccessToken() +*/ timestamp + "";
 
       // Decode the access token key from Base64
       byte[] key = Base64.getDecoder().decode(config.getAccessTokenKey());

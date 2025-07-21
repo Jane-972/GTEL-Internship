@@ -7,17 +7,16 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
-import static org.jane.gtelinternship.product.infra.client.logicom.LogicomHeadersUtil.createLogicomHeaders;
 import static org.jane.gtelinternship.product.infra.client.logicom.dto.InventoryDtoMapper.mapToDomain;
 
 @Service
 public class LogicomClient {
   private final RestClient logicomRestClient;
-  private final LogicomClientConfig config;
+  private final LogicomAuthenticationService authenticationService;
 
-  public LogicomClient(RestClient logicomRestClient, LogicomClientConfig config) {
+  public LogicomClient(RestClient logicomRestClient, LogicomAuthenticationService authenticationService) {
     this.logicomRestClient = logicomRestClient;
-    this.config = config;
+    this.authenticationService = authenticationService;
   }
 
   public ProductInventory getProductInventory(List<String> skus) {
@@ -26,7 +25,7 @@ public class LogicomClient {
         .path("/api/GetInventory")
         .queryParam("ProductID", String.join(";", skus))
         .build())
-      .headers(headers -> createLogicomHeaders(config))
+      .headers(headers -> authenticationService.buildHeaders())
       .retrieve()
       .body(InventoryResponseDto.class);
 

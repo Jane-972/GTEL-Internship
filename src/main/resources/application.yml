@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: GTEL-Internship
+
+server:
+  port: 8089
+
+
+
+
+logicom:
+  api:
+    url: https://quickconnect.logicompartners.com
+    customer-id: 1234
+    consumer-key: 1234
+    consumer-secret: 1234
+    access-token-key: 1234
+
+woocommerce:
+    api:
+      url: secret
+      key: 1234
+      secret: secret-123

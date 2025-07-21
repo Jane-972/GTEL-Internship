@@ -1,6 +1,6 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
-import org.jane.gtelinternship.product.infra.client.logicom.domain.ProductInventory;
+import org.jane.gtelinternship.product.domain.model.ProductInventory;
 import org.jane.gtelinternship.product.infra.client.logicom.dto.LogicomInventoryDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;

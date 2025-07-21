@@ -1,7 +1,7 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.jane.gtelinternship.product.infra.client.logicom.domain.PurchaseOrder;
+import org.jane.gtelinternship.product.domain.model.PurchaseOrder;
 
 public record LogicomPurchaseOrder(
   @JsonProperty("Quantity") String quantity,

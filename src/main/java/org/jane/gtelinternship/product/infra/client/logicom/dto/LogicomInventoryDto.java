@@ -1,7 +1,7 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
-import org.jane.gtelinternship.product.infra.client.logicom.domain.ProductInventory;
-import org.jane.gtelinternship.product.infra.client.logicom.domain.ProductStock;
+import org.jane.gtelinternship.product.domain.model.ProductInventory;
+import org.jane.gtelinternship.product.domain.model.ProductStock;
 
 import java.util.List;
 

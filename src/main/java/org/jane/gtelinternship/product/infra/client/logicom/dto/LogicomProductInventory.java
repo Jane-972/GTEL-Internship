@@ -1,8 +1,8 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.jane.gtelinternship.product.infra.client.logicom.domain.ProductStock;
-import org.jane.gtelinternship.product.infra.client.logicom.domain.PurchaseOrder;
+import org.jane.gtelinternship.product.domain.model.ProductStock;
+import org.jane.gtelinternship.product.domain.model.PurchaseOrder;
 
 import java.util.List;
 

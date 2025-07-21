@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.infra.client.logicom.domain;
+package org.jane.gtelinternship.product.domain.model;
 
 public record PurchaseOrder(
   String orderNumber,

@@ -1,0 +1,26 @@
+{
+  "StatusCode": 1,
+  "Status": "OK",
+  "Message": [
+    {
+      "SKU": "1C7D2EA",
+      "Inventory": "0",
+      "PO": {
+        "Quantity": "100",
+        "PO Delivery Date": "05-01-2023"
+      }
+    },
+    {
+      "SKU": "189T0AA",
+      "Inventory": "0"
+    },
+    {
+      "SKU": "1C7D2EA",
+      "Inventory": "0",
+      "PO": {
+        "Quantity": "100",
+        "PO Delivery Date": "05-01-2023"
+      }
+    }
+  ]
+}

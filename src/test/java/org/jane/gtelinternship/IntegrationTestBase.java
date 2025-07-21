@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "woocommerce.api.url=http://localhost:\\${wiremock.server.port}/woo",
+          "logicom.api.url=http://localhost:\\${wiremock.server.port}/logicom",
         }
 )
 @AutoConfigureMockMvc

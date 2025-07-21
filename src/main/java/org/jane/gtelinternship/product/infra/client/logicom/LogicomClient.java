@@ -1,13 +1,14 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
-import org.jane.gtelinternship.product.infra.client.logicom.dto.LogicomInventoryDto;
+import org.openapi.example.model.InventoryResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
 import static org.jane.gtelinternship.product.infra.client.logicom.LogicomHeadersUtil.createLogicomHeaders;
+import static org.jane.gtelinternship.product.infra.client.logicom.dto.InventoryDtoMapper.mapToDomain;
 
 @Service
 public class LogicomClient {
@@ -27,16 +28,8 @@ public class LogicomClient {
         .build())
       .headers(headers -> createLogicomHeaders(config))
       .retrieve()
-      .body(LogicomInventoryDto.class);
+      .body(InventoryResponseDto.class);
 
     return mapToDomain(dto);
-  }
-
-  private ProductInventory mapToDomain(LogicomInventoryDto dto) {
-    if (dto == null || dto.message() == null) {
-      return ProductInventory.empty();
-    } else {
-      return dto.toModel();
-    }
   }
 }

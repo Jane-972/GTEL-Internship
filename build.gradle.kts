@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.openapi.generator") version "7.14.0"
 }
 
 group = "org.jane"
@@ -10,6 +11,20 @@ version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir("$buildDir/generated-api/logicom/src/main/java")
+        }
+    }
+
+    test {
+        java {
+            srcDir("$buildDir/generated-api/logicom/src/main/java")
+        }
+    }
 }
 
 dependencies {
@@ -57,6 +72,44 @@ dependencyManagement {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
+    }
+
+    withType<JavaCompile> {
+        dependsOn(openApiGenerate)
+    }
+}
+
+openApiGenerate {
+    generatorName.set("java")
+    inputSpec.set("$rootDir/openapi/logicom/logicomApi.yaml")
+    outputDir.set("$buildDir/generated-api/logicom")
+    apiPackage.set("org.openapi.example.api")
+    modelPackage.set("org.openapi.example.model")
+    invokerPackage.set("org.openapi.example.invoker")
+    modelNameSuffix.set("Dto")
+
+    library.set("restclient")
+
+    configOptions.set(
+        mapOf(
+            "dateLibrary" to "java8",
+            "openApiNullable" to "false",
+            "useJakartaEe" to "true"
+        )
+    )
+    globalProperties.set(
+        mapOf(
+            "models" to "",
+            "apis" to "false",
+            "supportingFiles" to "false",
+            "modelDocs" to "false",
+            "generateApiTests" to "false",
+            "generateModelTests" to "false",
+            "generateApiDocumentation" to "false",
+            "generateModelDocumentation" to "false"
+        )
+    )
 }

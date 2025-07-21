@@ -1,0 +1,2340 @@
+openapi: 3.0.0
+info:
+  title: Logicom WebServices Quick-Connect API
+  description: This document explains the process of gaining access and setting up Logicom’s REST API’s for accessing information and posting orders directly from your own platform. It covers requirements, service endpoints, and parameter/body/header specifications.
+  version: 1.1.1
+servers:
+  - url: https://quickconnect.logicompartners.com/api
+    description: Production Environment
+  - url: https://dev-quickconnect.logicompartners.com/api
+    description: Staging Environment
+
+components:
+  securitySchemes:
+    AccessTokenAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: AccessToken
+      description: Access Token received from the GenerateAccessToken API. This token has a lifespan of one minute.
+    CredentialAuth:
+      type: http
+      scheme: basic
+      description: Basic authentication using Username and Password provided for initial credential retrieval.
+  parameters:
+    CustomerIDHeader:
+      in: header
+      name: CustomerID
+      schema:
+        type: integer
+      required: true
+      description: CustomerId provided on Credential creation.
+      example: 1422
+    TimestampHeader:
+      in: header
+      name: Timestamp
+      schema:
+        type: integer
+        format: int64
+      required: true
+      description: Epoch UTC time (10 digits) accurate to the second when the signature is generated (Current UTC epoch UNIX timestamp).
+      example: 1654677984
+    SignatureHeader:
+      in: header
+      name: Signature
+      schema:
+        type: string
+      required: true
+      description: AES Encrypted with Shared Symmetric Key (AccessTokenKey) encoded concatenation of access token and timestamp, then encoded to Base64.
+      example: enNCaS9uNENyVTh1amVIREtnaTVNTmxNUjdsSldyNXk4WElMZmRPelIyRDhjOFF1QkluSWNLeEZCZy82ZkRVa3ZNNUNlNStBK0FmSXQ5MHEyaEhUa3pKL3cxNWs4ZjJwRW12a2NNbm13eXd0aGkvS1B5SHkrR3RCR0RXd0djRXltZ0dKMkpRa3dvbUtudEk1WUF2a2RZeW1EZzR4ZytUVGhyYTZvOHFMSmt6c1d3L1EwMHZNUDFPeFVrRVl0UXVnSUZiMFNBUS9yeHRLc0NSK2RJRVU5SWszZ1NUb0ZFam9rdkdjdmpuQ1JkOTBROXhPdEFYUWJjMk5ZeDZaZU45ZHlNdkZ2NTM2SktxdlZTM0tqU2hRNlRObXdwSS9SWW50bW1HMk8wUkdZZjB5aWNqelZrZnZ5d2RlZ0ZqRlFaTG4=
+    AuthorizationHeader:
+      in: header
+      name: Authorization
+      schema:
+        type: string
+      required: true
+      description: Access Token received from the Initial OAuth token generation call.
+      example: X9l+r3r6VNY+AbjLLXAlrpCZHvyZHEWSjalExFqUXkVjKLX1P1VRqvmTOy+DSM35AISsZhPGOffHlNfll9AEQ947rPE/LnuVqdNAHGOkh+ZWPdWqND3gan3q0KpQRD6RIjFKLGaR1QS5uAzsH2P7/pn9L6ZW3KhgdK5nXA0VOSsaa1WesGKxyaDLWKSnFEe90+bsQpUz8Slah8A2TISI/A==
+
+  schemas:
+    AccessTokenResponse:
+      type: string
+      description: The access token string.
+      example: wlgkdOPMglk/NkK2RQyHt9W0LLL5E4hC6SwfkvxVtsRyHp9e4PIZMJ6WbJYY3gRdehZFIWlLsN2GmOYZAPbVYUIfAOIsnC/EEG2fBL1NdTk=
+
+    PriceVolume:
+      type: object
+      properties:
+        Quantity:
+          type: integer
+          description: Quantity for the volume price.
+          example: 2
+        PriceExclVAT:
+          type: number
+          format: double
+          description: Price excluding VAT for this quantity.
+          example: 10.11
+        'Discount %': # Quoted because of space and special character
+          type: number
+          format: double
+          description: Discount percentage for this quantity.
+          example: 69.48
+      required:
+        - Quantity
+        - PriceExclVAT
+        - 'Discount %'
+
+    PriceItem:
+      type: object
+      properties:
+        SKU:
+          type: string
+          description: Product SKU.
+          example: "075-06841"
+        PriceExclVAT:
+          type: string # Document shows string, typically number for price
+          description: Price of the SKU excluding VAT.
+          example: "600.00"
+        SpecialPrice:
+          type: string # Document shows string
+          description: Special Price.
+          example: "80.02"
+        StartDate:
+          type: string
+          format: date
+          description: Start Date of Special Price (DD-MM-YYYY).
+          example: "25-05-2022"
+        EndDate:
+          type: string
+          format: date
+          description: EndDate of Special Price (DD-MM-YYYY).
+          example: "30-06-2022"
+        VAT:
+          type: string # Document shows string, typically number
+          description: VAT amount.
+          example: "24.00"
+        RecycleTax:
+          type: string # Document shows string, typically number
+          description: Recycle tax of the item.
+          example: "1.25"
+        Currency:
+          type: string
+          description: The 3-digits currency code as defined by ISO-4217.
+          example: "EUR"
+        VolumePrice:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceVolume'
+          description: List of volume prices.
+      required:
+        - SKU
+        - PriceExclVAT
+        - VAT
+        - RecycleTax
+        - Currency
+
+    PriceResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of the request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceItem'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    ProductPriceDetails:
+      type: object
+      properties:
+        PriceExclVAT:
+          type: string
+          description: Price of the product item excluding VAT.
+          example: "135.53"
+        SpecialPrice:
+          type: string
+          description: Special Price.
+          example: "105.82"
+        StartDate:
+          type: string
+          format: date
+          description: Start Date of Special Price (DD-MM-YYYY).
+          example: "25-05-2022"
+        EndDate:
+          type: string
+          format: date
+          description: EndDate of Special Price (DD-MM-YYYY).
+          example: "30-06-2022"
+        VAT:
+          type: string
+          description: VAT price.
+          example: "19"
+        RecycleTax:
+          type: string
+          description: Recycle Tax price.
+          example: "1.21"
+        Currency:
+          type: string
+          description: The 3-digits currency code as defined by ISO-4217. Default values apply if empty.
+          enum: [EUR, RON, USD, MAD, SAR, AED]
+          default: EUR
+          example: "EUR"
+        VolumePrice:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceVolume'
+
+    ProductVariant:
+      type: object
+      properties:
+        Id:
+          type: string
+          example: "23615396"
+        Title:
+          type: string
+          example: "IntelXeonW-2223,16GB(1x16GB)DDR4,1TBHDD,Win10Pro"
+        Price:
+          type: string
+          example: "1,001.01"
+        ListPrice:
+          type: string
+          example: "1,001.01"
+        Inventory:
+          type: string # Document shows string, likely integer
+          example: "6"
+        Barcodes:
+          type: string
+          example: ""
+      required:
+        - Id
+        - Title
+        - Price
+        - ListPrice
+        - Inventory
+        - Barcodes
+
+    ProductSpecification:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: Name of specification.
+          example: "Display diagonal"
+        Value:
+          type: string
+          description: Value of the specification.
+          example: "27"
+      required:
+        - Name
+        - Value
+
+    ProductPO:
+      type: object
+      properties:
+        Quantity:
+          type: string # Document says String, but example is integer
+          description: Purchase Order Quantity.
+          example: "20"
+        PODeliveryDate:
+          type: string
+          format: date
+          description: Delivery Date (dd-MM-yyyy).
+          example: "25-07-2022"
+      required:
+        - Quantity
+        - PODeliveryDate
+
+    ProductInventoryDetails:
+      type: object
+      properties:
+        Quantity:
+          type: integer
+          description: Current stock quantity.
+          example: 0
+        PO:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductPO'
+
+    ProductItem:
+      type: object
+      properties:
+        SKU:
+          type: string
+          description: Product SKU.
+          example: "210-AZKS"
+        Name:
+          type: string
+          description: Product Name.
+          example: "DELL SE2722H 68.6 cm (27'') 1920 x 1080 pixels Full HD LCD Black"
+        Description:
+          type: string
+          description: Product Description.
+          example: "DELL SE2722H. Display diagonal: 68.6 cm (27''), Display resolution: 1920 x 1080 pixels, HD type: Full HD, Display technology: LCD, Response time: 8 ms, Native aspect ratio: 16:9, Viewing angle, horizontal: 178 , Viewing angle, vertical: 178 . VESA mounting. Product colour: Black"
+        Manufacturer:
+          type: string
+          description: Manufacturer Name.
+          example: "DELL"
+        Category:
+          type: string
+          description: Category Name.
+          example: "Monitors"
+        IsESD:
+          type: string # Document shows string, likely boolean or integer (1 or 0)
+          description: Indicates if it is an ESD product (1 or 0).
+          example: "1"
+        IsEUItem:
+          type: string # Document shows string, likely boolean or integer (1 or 0)
+          description: Indicates if it is an End User item (1 or 0).
+          example: "0"
+        Barcode:
+          type: string
+          description: Barcode.
+          example: ""
+        HasVariantProducts:
+          type: string # The example shows "11", implying it might be a count or string-encoded boolean
+          description: Indicates if the product has variant products.
+          example: "11"
+        Price:
+          $ref: '#/components/schemas/ProductPriceDetails'
+        IntelPoints:
+          type: number
+          format: double
+          description: Intel Point value.
+          example: 0
+        Warranty:
+          type: string
+          description: Product Warranty information.
+          example: "36 Months"
+        Specifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSpecification'
+        Inventory:
+          $ref: '#/components/schemas/ProductInventoryDetails'
+        Images:
+          type: array
+          items:
+            type: string
+            format: url
+            example: "https://www.logicompartners.com/product/image/medium/210-AZKS~1.jpg"
+        Variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+
+      required:
+        - SKU
+        - Name
+        - Description
+        - Manufacturer
+        - Category
+        - IsESD
+        - IsEUItem
+        - Barcode
+        - Price
+        - IntelPoints
+        - Warranty
+        - Specifications
+        - Inventory
+        - Images
+
+    ProductsResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of the request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductItem'
+        NextItemNo:
+          type: string
+          description: This is the SKU you should provide in PreviousItemNo of your next GetProducts call in order to get the next 10 products after the SKU specified. Used for pagination. If NextItemNo is not provided it means there are no more products after this call.
+          example: "210-AWLE"
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    InventoryItem:
+      type: object
+      properties:
+        SKU:
+          type: string
+          description: Product SKU.
+          example: "2X7U7EA"
+        Inventory:
+          type: string # Document shows string, likely integer
+          description: Number of items in stock.
+          example: "0"
+        Variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+          description: List of product variants and their inventory.
+        PO:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductPO'
+          description: Purchase order details.
+      required:
+        - SKU
+        - Inventory
+
+    InventoryResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of the request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryItem'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    AccountAddress:
+      type: object
+      properties:
+        Address1:
+          type: string
+          description: Address Line 1.
+          example: "Philipou 37 Saint Domedios"
+        Address2:
+          type: string
+          description: Address Line 2.
+          example: ""
+        PostCode:
+          type: string
+          description: Postal Code.
+          example: "23633"
+        Country:
+          type: string
+          description: Two-character ISO-Country Code.
+          example: "RO"
+        Type:
+          type: string
+          enum: ["Billing Address", "Shipping Address"]
+          description: Type of address.
+          example: "Billing Address"
+        Phone:
+          type: string
+          description: Phone number.
+          example: ""
+      required:
+        - Address1
+        - Address2
+        - PostCode
+        - Country
+        - Type
+        - Phone
+
+    AccountShippingAddress:
+      type: object
+      properties:
+        Id:
+          type: string
+          description: The ID of the Shipping/Billing Address to be Identified with.
+          example: "DEFAULT"
+        Address1:
+          type: string
+          description: Address Line 1.
+          example: "Bucuresti Ploiesti Street 9-13"
+        Address2:
+          type: string
+          description: Address Line 2.
+          example: "5th Floor, District 1"
+        PostCode:
+          type: string
+          description: Postal Code.
+          example: "010011"
+        Country:
+          type: string
+          description: Two-character ISO-Country Code.
+          example: "RO"
+        Type:
+          type: string
+          enum: ["Billing Address", "Shipping Address"]
+          description: Type of address.
+          example: "Shipping Address"
+        Phone:
+          type: string
+          description: Phone number.
+          example: "998018041"
+      # These fields are marked 'O' (Optional) in the doc, but the example fills them.
+      # Making them optional here to match status in doc
+      required:
+        - Id
+
+    AccountAddresses:
+      type: object
+      properties:
+        Address:
+          $ref: '#/components/schemas/AccountAddress'
+        ShippingAddresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountShippingAddress'
+
+    AccountEcommerce:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: Name.
+          example: "EUROPANDA SRL"
+        Email:
+          type: string
+          format: email
+          description: Email.
+          example: "Andreaskotsios@mfa.com"
+      required:
+        - Name
+        - Email
+
+    AccountDetailsMessage:
+      type: object
+      properties:
+        Addresses:
+          $ref: '#/components/schemas/AccountAddresses'
+        Ecommerce:
+          $ref: '#/components/schemas/AccountEcommerce'
+      required:
+        - Addresses
+        - Ecommerce
+
+    AccountDetailsResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          $ref: '#/components/schemas/AccountDetailsMessage'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    DocumentItem:
+      type: object
+      properties:
+        DocumentNo:
+          type: string
+          description: Document Reference Number.
+          example: "INV7044254"
+        Status:
+          type: string
+          enum: ["Open", "Released"]
+          description: Status of the document.
+          example: "Released"
+        SalesPersonCode:
+          type: string
+          description: Logicom Account Manager.
+          example: "II"
+        PaymentDiscount:
+          type: string # Document shows string, likely number
+          description: Discount.
+          example: "0"
+        PaymentDiscountDate:
+          type: string
+          format: date
+          description: Discount Date (dd-MM-yyyy).
+          example: "31-01-2018"
+        OrderDate:
+          type: string
+          format: date
+          description: Order Date (dd-MM-yyyy).
+          example: "13-12-2002"
+        DocumentDate:
+          type: string
+          format: date
+          description: Invoice Date (dd-MM-yyyy).
+          example: "31-01-2018"
+        DueDate:
+          type: string
+          format: date
+          description: Invoice Due Date (dd-MM-yyyy).
+          example: "31-05-2018"
+        RequestedDeliveryDate:
+          type: string
+          format: date
+          description: Requested Delivery Date (dd-MM-yyyy). Applicable only on Type Quote, Order.
+          example: "01-08-2019"
+          nullable: true # As per example 3, can be empty string
+        PaymentTerms:
+          type: string
+          description: Credit Term with Logicom.
+          example: "30Days"
+        ShipmentDate:
+          type: string
+          format: date
+          description: Day of Delivery (dd-MM-yyyy).
+          example: "31-01-2018"
+      required:
+        - DocumentNo
+        - Status
+        - SalesPersonCode
+        - PaymentDiscount
+        - PaymentDiscountDate
+        - OrderDate
+        - DocumentDate
+        - DueDate
+        - PaymentTerms
+        - ShipmentDate
+
+    DocumentsResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentItem'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    ProductCategory:
+      type: object
+      properties:
+        Id:
+          type: string
+        Name:
+          type: string
+        Subcategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCategory' # Recursive definition
+      required:
+        - Id
+        - Name
+
+    ProductCategoriesResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCategory'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    BrandItem:
+      type: object
+      properties:
+        Brand:
+          type: string
+          description: Brand name.
+          example: "ACRONIS"
+      required:
+        - Brand
+
+    BrandsResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandItem'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    CSPInvoiceHeader:
+      type: object
+      properties:
+        'Invoice No':
+          type: string
+          description: Invoice Number.
+          example: "CSPINV2101377"
+        BillToCustomerNo:
+          type: string
+          description: Bill To Customer Number.
+          example: "C100001"
+        BillToCustomerName:
+          type: string
+          description: Bill To Customer Name.
+          example: "Pamboris LTD"
+        SellToCustomerNo:
+          type: string
+          description: Sell To Customer Number.
+          example: "C100001"
+        SellToCustomerName:
+          type: string
+          description: Sell To Customer Name.
+          example: "Pamboris LTD"
+        PostingDate:
+          type: string
+          format: date
+          description: Posting Date (dd-MM-yyyy).
+          example: "31-08-2022"
+        DueDate:
+          type: string
+          format: date
+          description: Due Date (dd-MM-yyyy).
+          example: "31-08-2022"
+        ExternalDocumentNo:
+          type: string
+          description: External Document Number.
+          example: "CSPBILLINGAUG'22/01"
+        Currency:
+          type: string
+          description: Currency.
+          example: "USD"
+        AmountExclVAT:
+          type: string # Document shows string, but example is number
+          description: Amount Excluding VAT.
+          example: "1000.00"
+        VATAmount:
+          type: string # Document shows string, but example is number
+          description: VAT Amount.
+          example: "19.19"
+        AmountIncVAT:
+          type: string # Document shows string, but example is number
+          description: Amount Including VAT.
+          example: "1019.19"
+      required:
+        - 'Invoice No'
+        - BillToCustomerNo
+        - BillToCustomerName
+        - SellToCustomerNo
+        - SellToCustomerName
+        - PostingDate
+        - DueDate
+        - ExternalDocumentNo
+        - Currency
+        - AmountExclVAT
+        - VATAmount
+        - AmountIncVAT
+
+    CSPLineItem:
+      type: object
+      properties:
+        CompanyId:
+          type: string
+          example: "000000"
+        InvoiceLineNo:
+          type: string
+          example: "10001"
+        ServiceId:
+          type: string
+          example: "Micros365BusineStanda_1000"
+        ServiceName:
+          type: string
+          example: "(NCE) Microsoft 365 Business Standard"
+        AccountId:
+          type: string
+          example: "000000"
+        PriceableItemDescription:
+          type: string
+          example: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+        BillableParameter:
+          type: string
+          example: "Billing Type=Prepaid (with 1-year commitment) - P1Y Quantity="
+        BillingStartDate:
+          type: string
+          format: date-time
+          description: DateTime (dd-MM-yyyyTHH:mm:ss).
+          example: "04-08-2022T00:00:00"
+        ActualChargeInterval:
+          type: string
+          example: "04.08.2022 - 03.08.2023"
+        SalesValue:
+          type: string # Document shows string, but example is number
+          example: "1000"
+        Currency:
+          type: string
+          example: "USD"
+        PriceableItemDescription2:
+          type: string
+          example: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+        ContractId:
+          type: string
+          example: "00100000"
+        EndUserName:
+          type: string
+          example: "COnstPaner LTD"
+        VendorReference:
+          type: string
+          example: "{TGR5EW-0ErF3-342F-dE4T-DFFR3E2}"
+        BillingType:
+          type: string
+          example: ""
+        ItemNo:
+          type: string
+          example: "GTR33TR2:0003"
+        ItemDescription:
+          type: string
+          example: "MSFT365 Business Standard"
+        StartDate:
+          type: string
+          format: date
+          description: Date (dd-MM-yyyy).
+          example: "01-08-2022"
+        EndDate:
+          type: string
+          format: date
+          description: Date (dd-MM-yyyy).
+          example: "31-07-2022"
+        Quantity:
+          type: string # Document shows string, but example is number
+          example: "4"
+      required:
+        - CompanyId
+        - InvoiceLineNo
+        - ServiceId
+        - ServiceName
+        - AccountId
+        - PriceableItemDescription
+        - BillableParameter
+        - BillingStartDate
+        - ActualChargeInterval
+        - SalesValue
+        - Currency
+        - PricableItemDescription2
+        - ContractId
+        - EndUserName
+        - VendorReference
+        - BillingType
+        - ItemNo
+        - ItemDescription
+        - StartDate
+        - EndDate
+        - Quantity
+
+    CSPDetailsMessage:
+      type: object
+      properties:
+        Invoice:
+          allOf:
+            - $ref: '#/components/schemas/CSPInvoiceHeader'
+            - type: object
+              properties:
+                'CSP Details': # Quoted due to space
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CSPLineItem'
+              required:
+                - 'CSP Details'
+      required:
+        - Invoice
+
+    CSPDetailsResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: array
+          items:
+            $ref: '#/components/schemas/CSPDetailsMessage'
+      required:
+        - StatusCode
+        - Status
+        - Message
+
+    OrderItem:
+      type: object
+      properties:
+        SKU:
+          type: string
+          description: Product SKU.
+          example: "HOGASHLOS"
+        VariantId:
+          type: string
+          description: Variant ID (required for items with variants).
+          example: "HOGASHLOS2"
+          nullable: true
+        Quantity:
+          type: integer
+          description: Quantity of the item.
+          example: 1
+      required:
+        - SKU
+        - Quantity
+
+    OrderShipToAddressId:
+      type: object
+      properties:
+        Id:
+          type: string
+          description: The ID of the Shipping Address.
+          example: "DEFAULT"
+          nullable: true # As per example, can be empty string
+      required:
+        - Id
+
+    PostOrderRequestBody:
+      type: object
+      properties:
+        StockVerification:
+          type: integer
+          enum: [0, 1]
+          description: |
+            • 0 : No stock Verification
+            • 1 : Stock Verification. Order will not be processed if there is no stock.
+          example: 1
+        ReferenceNo:
+          type: string
+          description: Customer Reference Number (alphabet characters and - . , _ - characters allowed).
+          example: "TEST REFERENCE"
+          nullable: true # As per example, can be empty string
+        RequestedDeliveryDate:
+          type: string
+          format: date
+          description: Expected Delivery Date (dd-MM-yyyy).
+          example: "31-12-2022"
+          nullable: true # As per example, can be empty string
+        ShipToAddress:
+          $ref: '#/components/schemas/OrderShipToAddressId'
+        DeliveryMethod:
+          type: string
+          description: For Romania, use "Default".
+          example: "Default"
+          nullable: true # As per example, can be empty string
+        ShopAccountEmail:
+          type: string
+          format: email
+          description: Email to Receive the Order Confirmation (Email validation).
+          example: "eteam@logicom.net"
+        Comments:
+          type: string
+          description: Customer Comments (only alphanumeric and , . @ characters allowed).
+          example: "TEST COMMENTS."
+          nullable: true # As per example, can be empty string
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+        PONumber:
+          type: string
+          description: Customer Purchase Order Number (required for ESD ORDERS).
+          example: "PO456545"
+          nullable: true
+        FirstName:
+          type: string
+          description: First Name (only alphabet characters allowed) (required for ESD ORDERS).
+          example: "George"
+          nullable: true
+        LastName:
+          type: string
+          description: Last Name (only alphabet characters allowed) (required for ESD ORDERS).
+          example: "Georgiou"
+          nullable: true
+        Email:
+          type: string
+          format: email
+          description: Email that the token will be sent to (Email validation) (required for ESD ORDERS).
+          example: "eteam@logicom.net"
+          nullable: true
+        EndUserCompany:
+          type: string
+          description: End User Company (only alphabet characters allowed) (required for End User Form Details).
+          example: "Company123"
+          nullable: true
+        EndUserEmail:
+          type: string
+          format: email
+          description: End User Email (Email validation) (required for End User Form Details).
+          example: "eteam@logicom.net"
+          nullable: true
+        EndUserContactName:
+          type: string
+          description: End User Name (only alphabet characters allowed) (required for End User Form Details).
+          example: "George G"
+          nullable: true
+        EndUserAddress:
+          type: string
+          description: End User Address (only alphanumeric characters allowed) (required for End User Form Details).
+          example: "Street 1 Acropoli"
+          nullable: true
+        EndUserCity:
+          type: string
+          description: End User City (only alphabet characters allowed) (required for End User Form Details).
+          example: "Nicosia"
+          nullable: true
+        EndUserPostalCode:
+          type: string
+          description: End User Postal Code (only alphanumeric characters allowed) (required for End User Form Details).
+          example: "2145"
+          nullable: true
+        EndUserCountry:
+          type: string
+          description: End User Country (only alphabet characters allowed) (required for End User Form Details).
+          example: "CY"
+          nullable: true
+        EndUserPhoneNumber:
+          type: string
+          description: End User Phone Number (only numbers allowed) (required for End User Form Details).
+          example: "3578545212"
+          nullable: true
+        InvoiceType:
+          type: string
+          enum: ["FREEZONE", "DUBAILLC"]
+          description: For Dubai only.
+          example: "DubaiLLC"
+          nullable: true
+      required:
+        - StockVerification
+        - ReferenceNo
+        - RequestedDeliveryDate
+        - ShipToAddress
+        - DeliveryMethod
+        - ShopAccountEmail
+        - Comments
+        - Items
+
+    OrderSuccessResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of the request.
+          example: 1
+        Status:
+          type: string
+          description: Status of the response.
+          example: "OK"
+        Message:
+          type: string
+          description: A success message, e.g., "Order placed successfully."
+          example: "Order placed successfully."
+    OrderErrorResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: Status code of the request.
+          example: 0
+        Status:
+          type: string
+          description: Status of the response.
+          example: "Error"
+        Message:
+          type: string
+          description: Detailed error message.
+          example: "Item C7115X has availability of 5 instead of requested 16."
+
+
+paths:
+  /GetCredentials:
+    get:
+      summary: Get Credentials
+      description: This API is used to obtain ConsumerKey, ConsumerSecret, AccessTokenKey, and CustomerId after receiving a Username and Password from Logicom.
+      operationId: getCredentials
+      security:
+        - CredentialAuth: []
+      parameters:
+        - in: header
+          name: Username
+          schema:
+            type: string
+          required: true
+          description: Username provided by Logicom.
+        - in: header
+          name: Password
+          schema:
+            type: string
+          required: true
+          description: Password provided by Logicom.
+      responses:
+        '200':
+          description: Successful retrieval of credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ConsumerKey:
+                    type: string
+                  ConsumerSecret:
+                    type: string
+                  AccessTokenKey:
+                    type: string
+                  CustomerId:
+                    type: integer
+              example:
+                ConsumerKey: "QjvoQ4bRd7wO5sctxcewJULWvOAWfp4lgid4tKFNjpv3p277N1ihh1EbnUcCUg2/evmREn+EW1XPc3ECsoXew3=="
+                ConsumerSecret: "w6rnGC+eVasrK4/ie7/Fxyog2iNXJQp3dwQQ/f6TEocY358/Gd25aJb2sQpUmiRCAMOk3YXBnfa1tJ0l5t2ceY=="
+                AccessTokenKey: "SomeAccessTokenKey"
+                CustomerId: 1422
+        '400':
+          description: Bad request or validation failure.
+        '403':
+          description: Forbidden - IP address not registered or credential limit reached.
+
+  /GenerateAccessToken:
+    get:
+      summary: Acquire Access Token
+      description: Obtain a short-lived AccessToken (1-minute lifespan) required for subsequent API calls.
+      operationId: acquireAccessToken
+      parameters:
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - in: header
+          name: BCode
+          schema:
+            type: string
+          required: true
+          description: AES Encrypted with Shared Symmetric Key (AccessTokenKey) encoded from the concatenation of ConsumerKey + ";" + ConsumerSecret.
+          example: W0gXFx8eEZEiznOO8+OALu4j2dhrf2Sl73GrpUvu1MbCiI/AKw9u/FCkJaaBpIrdLEDial278L/S3dNeXWtksw==
+        - in: header
+          name: GenerateSignature
+          schema:
+            type: string
+          required: true
+          description: AES Encrypted with Shared Symmetric Key (AccessTokenKey) encoded from the concatenation of ConsumerKey + CustomerID + timestamp + ";" + ConsumerSecret.
+          example: W0gXFx8eEZEiznOO8+OALiamBSTcvv/pC4rbEFRiizUlAfZe1SNQK5unIDJjmWrHtdEzJoWqr4GkOvUbI3a6iyFnFoPqKGh4NpXmOv3DI1r=
+      responses:
+        '200':
+          description: Successfully generated Access Token.
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/AccessTokenResponse'
+              examples:
+                Success:
+                  value: wlgkdOPMglk/NkK2RQyHt9W0LLL5E4hC6SwfkvxVtsRyHp9e4PIZMJ6WbJYY3gRdehZFIWlLsN2GmOYZAPbVYUIfAOIsnC/EEG2fBL1NdTk=
+        '400':
+          description: Invalid request parameters or signature.
+
+  /GetPrice:
+    get:
+      summary: Get Product Prices
+      description: Retrieve pricing information for specified products.
+      operationId: getPrice
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: ProductId
+          schema:
+            type: string
+          required: true
+          description: List of product SKUs separated by semicolon (;). Reserved characters (e.g., #) in URI parameters should be UTF-8 encoded (e.g., C2P23AE%23BGX).
+          example: HORASHLOS;293V1EA
+        - in: query
+          name: Currency
+          schema:
+            type: string
+            enum: [EUR, USD, RON, MAD, SAR, AED]
+          required: false
+          description: The 3-digits currency code as defined by ISO-4217. If empty, a default value based on region will be used.
+          examples:
+            EUR:
+              value: EUR
+            USD:
+              value: USD
+      responses:
+        '200':
+          description: Successful retrieval of product prices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - SKU: "075-06841"
+                        PriceExclVAT: "600.00"
+                        VAT: "24.00"
+                        RecycleTax: "1.25"
+                        Currency: "EUR"
+                        VolumePrice:
+                          - Quantity: 1
+                            PriceExclVAT: 33.16
+                            Discount %: 0.01
+                          - Quantity: 2
+                            PriceExclVAT: 10.12
+                            Discount %: 69.49
+                          - Quantity: 50
+                            PriceExclVAT: 2.02
+                            Discount %: 93.90
+                      - SKU: "294B3EA"
+                        PriceExclVAT: "500.19"
+                        SpecialPrice: "435.00"
+                        StartDate: "01-08-2022"
+                        EndDate: "31-10-2022"
+                        VAT: "19.50"
+                        RecycleTax: "1"
+                        Currency: "EUR"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetProducts:
+    get:
+      summary: Get Products
+      description: Retrieve detailed information about products, including pricing, inventory, and specifications. Supports pagination.
+      operationId: getProducts
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: ProductId
+          schema:
+            type: string
+          required: false
+          description: The SKU of the product. Reserved characters (e.g., #) in URI parameters should be UTF-8 encoded.
+          example: 1VV21AE
+        - in: query
+          name: Brand
+          schema:
+            type: string
+          required: false
+          description: Filter products by Brand Name.
+          examples:
+            HP:
+              value: HP
+            Acer:
+              value: Acer
+        - in: query
+          name: Category
+          schema:
+            type: string
+          required: false
+          description: Filter products by Category ID (e.g., 100, 100-10, 100-10-1).
+          example: 100-10
+        - in: query
+          name: PreviousItemNo
+          schema:
+            type: string
+          required: false
+          description: When provided, the query will retrieve the next 10 SKUs in the list of products (for pagination). When left empty, it retrieves products starting from the first. Reserved characters (e.g., #) in URI parameters should be UTF-8 encoded.
+          example: 142257-002
+        - in: query
+          name: Currency
+          schema:
+            type: string
+            enum: [EUR, RON, USD, MAD, SAR, AED]
+          required: false
+          description: The 3-digits currency code as defined by ISO-4217.
+          examples:
+            EUR:
+              value: EUR
+            RON:
+              value: RON
+        - in: query
+          name: DateFrom
+          schema:
+            type: string
+            format: date-time
+            description: Date (dd-MM-yyyy hh:mm:ss) UTC Time for filtering products.
+          required: false
+          example: "21-01-2022 15:59:56"
+        - in: query
+          name: DateTo
+          schema:
+            type: string
+            format: date-time
+            description: Date (dd-MM-yyyy hh:mm:ss) UTC Time for filtering products.
+          required: false
+          example: "17-05-2022 15:59:56"
+      responses:
+        '200':
+          description: Successful retrieval of product information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - SKU: "210-AZKS"
+                        Name: "DELL SE2722H 68.6 cm (27'') 1920 x 1080 pixels Full HD LCD Black"
+                        Description: "DELL SE2722H. Display diagonal: 68.6 cm (27''), Display resolution: 1920 x 1080 pixels, HD type: Full HD, Display technology: LCD, Response time: 8 ms, Native aspect ratio: 16:9, Viewing angle, horizontal: 178 , Viewing angle, vertical: 178 . VESA mounting. Product colour: Black"
+                        Manufacturer: "DELL"
+                        Category: "Monitors"
+                        IsESD: "1"
+                        IsEUItem: "0"
+                        Barcode: ""
+                        HasVariantProducts: "11"
+                        Price:
+                          PriceExclVAT: "135.53"
+                          VAT: "19"
+                          RecycleTax: "1.21"
+                          Currency: "EUR"
+                        IntelPoints: 0
+                        Warranty: "36 Months"
+                        Specifications:
+                          - Name: "Display diagonal"
+                            Value: "27"
+                          - Name: "Display resolution"
+                            Value: "1920 x 1080 pixels"
+                          - Name: "Product colour "
+                            Value: " Black "
+                        Inventory:
+                          Quantity: 0
+                          PO:
+                            - Quantity: 392
+                              PODeliveryDate: "01-06-2022"
+                        Images:
+                          - "https://www.logicompartners.com/product/image/medium/210-AZKS~1.jpg"
+                          - "https://www.logicompartners.com/product/image/medium/210-AZKS~2.jpg"
+                          - "https://www.logicompartners.com/product/image/medium/210-AZKS~3.jpg"
+                          - "https://www.logicompartners.com/product/image/medium/210-AZKS~4.jpg"
+                          - "https://www.logicompartners.com/product/image/medium/210-AZKS~5.jpg"
+                        Variants: []
+                    NextItemNo: "210-AWLE"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetInventory:
+    get:
+      summary: Get Product Inventory
+      description: Retrieve inventory information for specified products, including in-stock quantities, variants, and purchase order details.
+      operationId: getInventory
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: ProductID
+          schema:
+            type: string
+          required: true
+          description: Product SKU. More than one SKU can be specified, separated by semicolons (;), to get multiple product inventories. Reserved characters (e.g., #) in URI parameters should be UTF-8 encoded (e.g., C2P23AE%23BGX).
+          example: 2X7U7EA;BD706A;210-AZKS
+      responses:
+        '200':
+          description: Successful retrieval of product inventory.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+              examples:
+                SingleProductRequestExample:
+                  summary: Example for request https://quickconnect.logicompartners.com/api/GetInventory/?ProductId=2X7U7EA;BD706A
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - SKU: "1C7D2EA"
+                        Inventory: "0"
+                        PO:
+                          - Quantity: "100"
+                            PODeliveryDate: "05-01-2023"
+                      - SKU: "189T0AA"
+                        Inventory: "0"
+                      - SKU: "1C7D2EA"
+                        Inventory: "0"
+                        PO:
+                          - Quantity: "100"
+                            PODeliveryDate: "05-01-2023"
+                MultipleProductRequestExample:
+                  summary: Example for request https://quickconnect.logicompartners.com/api/GetInventory?ProductId=CPU3WLC;7ZT545;129AA
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - SKU: "CPU3WLC"
+                        Inventory: "0"
+                        Variants:
+                          - Id: "CPU3WLC0W"
+                            Title: "NEOMOUNTS NM-CPU100WHITE"
+                            Price: "5.03"
+                            ListPrice: "5.03"
+                            Inventory: "0"
+                            Barcodes: ""
+                      - SKU: "7ZT545"
+                        Inventory: "3"
+                        Variants:
+                          - Id: "7ZT541"
+                            Title: "LENOVO TS 50Gb 4-port RJ45 LOM"
+                            Price: "15"
+                            ListPrice: "15"
+                            Inventory: "0"
+                            Barcodes: ""
+                          - Id: "7ZT543"
+                            Title: "LENOVO TS 25Gb 4-port RJ45 LOM"
+                            Price: "19"
+                            ListPrice: "19"
+                            Inventory: "0"
+                            Barcodes: ""
+                      - SKU: "129AA"
+                        Inventory: "4"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetAccountDetails:
+    get:
+      summary: Get Account Details
+      description: Retrieve detailed account information, including addresses and e-commerce details.
+      operationId: getAccountDetails
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+      responses:
+        '200':
+          description: Successful retrieval of account details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailsResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      Addresses:
+                        Address:
+                          Address1: "Philipou 37 Saint Domedios"
+                          Address2: ""
+                          PostCode: "23633"
+                          Country: "RO"
+                          Type: "Billing Address"
+                          Phone: ""
+                        ShippingAddresses:
+                          - Id: "DEFAULT"
+                            Address1: "Bucuresti Ploiesti Street 9-13"
+                            Address2: "5th Floor, District 1"
+                            PostCode: "010011"
+                            Country: "RO"
+                            Type: "Shipping Address"
+                            Phone: "998018041"
+                      Ecommerce:
+                        Name: "MFA LTD"
+                        Email: "Andreaskotsios@mfa.com"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetDocuments:
+    get:
+      summary: Get Documents
+      description: Retrieve a list of documents (Orders, Invoices, Quotes) based on specified filters.
+      operationId: getDocuments
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: DocumentType
+          schema:
+            type: string
+            enum: ["Order", "Invoice", "Quote"]
+          required: true
+          description: Type of document to retrieve.
+          example: "Invoice"
+        - in: query
+          name: PageIndex
+          schema:
+            type: integer
+          required: false
+          description: Page number for pagination (e.g., 0, 1, 2...).
+          example: 0
+        - in: query
+          name: DocumentId
+          schema:
+            type: string
+          required: false
+          description: Reference number of the document.
+          example: "INV22001267"
+        - in: query
+          name: DateFrom
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Search start date (dd-MM-yyyy).
+          example: "01-12-2021"
+        - in: query
+          name: DateTo
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Search end date (dd-MM-yyyy).
+          example: "10-12-2021"
+      responses:
+        '200':
+          description: Successful retrieval of documents.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentsResponse'
+              examples:
+                InvoiceResponse:
+                  summary: Example for DocumentType=Invoice
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - DocumentNo: "INV7044254"
+                        Status: "Released"
+                        SalesPersonCode: "II"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "31-01-2018"
+                        OrderDate: "13-12-2002"
+                        DocumentDate: "31-01-2018"
+                        DueDate: "31-05-2018"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "31-01-2018"
+                      - DocumentNo: "INV7006091"
+                        Status: "Released"
+                        SalesPersonCode: "RV"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "17-08-2010"
+                        OrderDate: "12-08-2010"
+                        DocumentDate: "17-08-2010"
+                        DueDate: "17-08-2010"
+                        PaymentTerms: "Cash"
+                        ShipmentDate: "12-08-2010"
+                OrderResponse:
+                  summary: Example for DocumentType=Order
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - DocumentNo: "O7063935"
+                        Status: "Open"
+                        SalesPersonCode: "PC"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "19-11-2020"
+                        OrderDate: "30-03-2018"
+                        DocumentDate: "19-11-2020"
+                        DueDate: "18-01-2021"
+                        RequestedDeliveryDate: "01-08-2019"
+                        PaymentTerms: "60Days"
+                        ShipmentDate: "30-03-2018"
+                      - DocumentNo: "O7127280"
+                        Status: "Open"
+                        SalesPersonCode: "AM"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "19-07-2021"
+                        OrderDate: "03-12-2020"
+                        DocumentDate: "19-07-2021"
+                        DueDate: "16-11-2021"
+                        RequestedDeliveryDate: "31-12-2021"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "03-12-2020"
+                QuoteResponse:
+                  summary: Example for DocumentType=Quote
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - DocumentNo: "Q2200084"
+                        Status: "Open"
+                        SalesPersonCode: "M.TUFAN"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "28-04-2022"
+                        OrderDate: "28-04-2022"
+                        DocumentDate: "28-04-2022"
+                        DueDate: "26-08-2022"
+                        RequestedDeliveryDate: ""
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "28-04-2022"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetPendingInvoices:
+    get:
+      summary: Get Pending Invoices
+      description: Retrieve a list of pending invoices.
+      operationId: getPendingInvoices
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: DateFrom
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Search start date (dd-MM-yyyy).
+          example: "01-12-2021"
+        - in: query
+          name: DateTo
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Search end date (dd-MM-yyyy).
+          example: "10-12-2021"
+      responses:
+        '200':
+          description: Successful retrieval of pending invoices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentsResponse' # Reusing DocumentResponse as structure is identical
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - DocumentNo: "INV7113600"
+                        Status: "Released"
+                        SalesPersonCode: "HH"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "03-03-2022"
+                        OrderDate: "03-03-2022"
+                        DocumentDate: "03-03-2022"
+                        DueDate: "01-07-2022"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "03-03-2022"
+                      - DocumentNo: "INV7114082"
+                        Status: "Released"
+                        SalesPersonCode: "HH"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "14-03-2022"
+                        OrderDate: "11-03-2022"
+                        DocumentDate: "14-03-2022"
+                        DueDate: "12-07-2022"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "14-03-2022"
+                      - DocumentNo: "INV7114087"
+                        Status: "Released"
+                        SalesPersonCode: "HH"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "14-03-2022"
+                        OrderDate: "11-03-2022"
+                        DocumentDate: "14-03-2022"
+                        DueDate: "12-07-2022"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "14-03-2022"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetDocumentDetails:
+    get:
+      summary: Get Document Details
+      description: Retrieve detailed information for a specific document (Order, Invoice, or Quote).
+      operationId: getDocumentDetails
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: DocumentType
+          schema:
+            type: string
+            enum: ["Order", "Invoice", "Quote"]
+          required: true
+          description: Type of document to retrieve details for.
+          example: "Invoice"
+        - in: query
+          name: DocumentId
+          schema:
+            type: string
+          required: true
+          description: Reference number of the document.
+          example: "INV7110684"
+      responses:
+        '200':
+          description: Successful retrieval of document details.
+          content:
+            application/json:
+              schema:
+                type: object # Specific structure for GetDocumentDetails response
+                properties:
+                  StatusCode:
+                    type: integer
+                    description: Status code of request.
+                    example: 1
+                  Status:
+                    type: string
+                    description: Status of the response.
+                    example: "OK"
+                  Message:
+                    type: object
+                    properties:
+                      OrderHeader:
+                        type: object
+                        properties:
+                          DocumentNo:
+                            type: string
+                            example: "INV7110684"
+                          OrderStatus:
+                            type: string
+                            enum: ["Open", "Released"]
+                            example: "Released"
+                          SalesPersonCode:
+                            type: string
+                            example: "AM"
+                          PaymentDiscount:
+                            type: string # Document shows string, likely number
+                            example: "0"
+                          PaymentDiscountDate:
+                            type: string
+                            format: date
+                            example: "07-01-2022"
+                          OrderDate:
+                            type: string
+                            format: date
+                            example: "30-12-2021"
+                          DocumentDate:
+                            type: string
+                            format: date
+                            example: "07-01-2022"
+                          DueDate:
+                            type: string
+                            format: date
+                            example: "07-05-2022"
+                          RequestedDeliveryDate:
+                            type: string
+                            format: date
+                            description: Applicable only on Type Quote,Order.
+                            example: "07-01-2022"
+                            nullable: true
+                          PaymentTerms:
+                            type: string
+                            example: "30Days"
+                          ShipmentDate:
+                            type: string
+                            format: date
+                            example: "07-01-2022"
+                        required:
+                          - DocumentNo
+                          - OrderStatus
+                          - SalesPersonCode
+                          - PaymentDiscount
+                          - PaymentDiscountDate
+                          - OrderDate
+                          - DocumentDate
+                          - DueDate
+                          - PaymentTerms
+                          - ShipmentDate
+                      OrderAddresses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            Address1:
+                              type: string
+                              example: "Grant Center, Sos Virtutii 148"
+                            Address2:
+                              type: string
+                              example: "Sector 6"
+                            Country:
+                              type: string
+                              example: "RO"
+                            Type:
+                              type: string
+                              enum: ["SellToAddress", "BillToAddress", "ShipToAddress"]
+                              example: "SellToAddress"
+                            City:
+                              type: string
+                              example: "Bucuresti"
+                            PostCode:
+                              type: string
+                              example: "60787"
+                          required:
+                            - Address1
+                            - Address2
+                            - Country
+                            - Type
+                            - City
+                            - PostCode
+                      OrderItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            ItemNo:
+                              type: string
+                              example: "W2210A"
+                            Title:
+                              type: string
+                              example: "HP 207A Black LaserJet Toner"
+                            UOM:
+                              type: string
+                              example: "BUC"
+                            ShippingDate:
+                              type: string
+                              format: date
+                              example: "10-01-2022"
+                            Quantity:
+                              type: integer
+                              example: 1
+                            Price:
+                              type: number
+                              format: double
+                              example: 230.21
+                            Total:
+                              type: number
+                              format: double
+                              example: 230.21
+                            Outst:
+                              type: integer
+                              description: Outstanding Quantity (Applicable to Type Order, Quote).
+                              example: 10
+                              nullable: true
+                            Status:
+                              type: string
+                              description: Status (Applicable to Type Order, Quote). Example not given for specific values.
+                              example: "Shipped"
+                              nullable: true
+                          required:
+                            - ItemNo
+                            - Title
+                            - UOM
+                            - ShippingDate
+                            - Quantity
+                            - Price
+                            - Total
+                      OrderTotals:
+                        type: object
+                        properties:
+                          SubTotal:
+                            type: string # Document shows string, likely number
+                            example: "231.41"
+                          Total:
+                            type: string # Document shows string, likely number
+                            example: "231.41"
+                          VAT:
+                            type: string # Document shows string, likely number
+                            example: "43.97"
+                          TotalInclVAT:
+                            type: string # Document shows string, likely number
+                            example: "275.38"
+                        required:
+                          - SubTotal
+                          - Total
+                          - VAT
+                          - TotalInclVAT
+                    required:
+                      - OrderHeader
+                      - OrderAddresses
+                      - OrderItems
+                      - OrderTotals
+                required:
+                  - StatusCode
+                  - Status
+                  - Message
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      OrderHeader:
+                        DocumentNo: "INV7110684"
+                        OrderStatus: "Released"
+                        SalesPersonCode: "AM"
+                        PaymentDiscount: "0"
+                        PaymentDiscountDate: "07-01-2022"
+                        OrderDate: "30-12-2021"
+                        DocumentDate: "07-01-2022"
+                        DueDate: "07-05-2022"
+                        PaymentTerms: "30Days"
+                        ShipmentDate: "07-01-2022"
+                      OrderAddresses:
+                        - Address1: "Grant Center, Sos Virtutii 148"
+                          Address2: "Sector 6"
+                          Country: "RO"
+                          Type: "SellToAddress"
+                          City: "Bucuresti"
+                          PostCode: "60787"
+                        - Address1: "STR. CIOROGARLA, SAT BACU 214"
+                          Address2: "Sector 6"
+                          Country: "RO"
+                          Type: "BillToAddress"
+                          City: "COMUNA JOLTA, GR"
+                          PostCode: "087151"
+                        - Address1: "STR. CIOROGARLA, SAT BACU 214"
+                          Address2: "Sector 6"
+                          Country: "RO"
+                          Type: "ShipToAddress"
+                          City: "COMUNA JOLTA, GR"
+                          PostCode: "087151"
+                      OrderItems:
+                        - ItemNo: "W2210A"
+                          Title: "HP 207A Black LaserJet Toner"
+                          UOM: "BUC"
+                          ShippingDate: "10-01-2022"
+                          Quantity: 1
+                          Price: 230.21
+                          Total: 230.21
+                      OrderTotals:
+                        SubTotal: "231.41"
+                        Total: "231.41"
+                        VAT: "43.97"
+                        TotalInclVAT: "275.38"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetProductCategories:
+    get:
+      summary: Get Product Categories
+      description: Retrieve a list of product categories, including their subcategories.
+      operationId: getProductCategories
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+      responses:
+        '200':
+          description: Successful retrieval of product categories.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCategoriesResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - Id: "100"
+                        Name: "Personal Computing Systems"
+                        Subcategories:
+                          - Id: "100-10"
+                            Name: "Desktop & Workstation"
+                            Subcategories: []
+                          - Id: "100-10-1"
+                            Name: "Desktops"
+                            Subcategories: []
+                          - Id: "100-10-5"
+                            Name: "All-in One"
+                            Subcategories: []
+                          - Id: "100-20-1"
+                            Name: "Notebooks"
+                            Subcategories: []
+                      - Id: "1100"
+                        Name: "AudioVisual"
+                        Subcategories:
+                          - Id: "1100-10"
+                            Name: "Audio & Video"
+                            Subcategories: []
+                          - Id: "1100-10-1"
+                            Name: "Speakerphone"
+                            Subcategories: []
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetBrands:
+    get:
+      summary: Get Brands
+      description: Retrieve a list of available product brands.
+      operationId: getBrands
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+      responses:
+        '200':
+          description: Successful retrieval of brands.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandsResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - Brand: "ACRONIS"
+                      - Brand: "APC"
+                      - Brand: "BITDEFENDER"
+                      - Brand: "CISCO"
+                      - Brand: "DELL"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /GetCSPDetails:
+    get:
+      summary: Get CSP Details
+      description: Retrieve detailed information for CSP (Cloud Solution Provider) invoices by DocumentId or BillingPeriod.
+      operationId: getCSPDetails
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+        - in: query
+          name: DocumentId
+          schema:
+            type: string
+          required: false # Either DocumentId or BillingPeriod must be provided
+          description: DocumentId (either DocumentId or Billing Period must be provided).
+          example: "CSPINV2101347"
+        - in: query
+          name: BillingPeriod
+          schema:
+            type: string
+            format: YYYY-MM
+          required: false # Either DocumentId or BillingPeriod must be provided
+          description: Search billing period (either DocumentId or Billing Period must be provided).
+          example: "2022-07"
+      responses:
+        '200':
+          description: Successful retrieval of CSP details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CSPDetailsResponse'
+              examples:
+                SuccessResponse:
+                  value:
+                    StatusCode: 1
+                    Status: "OK"
+                    Message:
+                      - Invoice:
+                          'Invoice No': "CSPINV221234"
+                          BillToCustomerNo: "C0000"
+                          BillToCustomerName: "Pamboris LTD"
+                          SellToCustomerNo: "C0000"
+                          SellToCustomerName: "Pamboris LTD "
+                          PostingDate: "2022-08-31"
+                          DueDate: "2022-08-31"
+                          ExternalDocumentNo: "CSPBILLINGAUG'22/01"
+                          Currency: "USD"
+                          AmountExclVAT: "1,000.00"
+                          VATAmount: "19.19"
+                          AmountIncVAT: "1,019.19"
+                          'CSP Details':
+                            - CompanyId: "0000000"
+                              InvoiceLineNo: "10001"
+                              ServiceId: "Micros365BusineStanda_1000"
+                              ServiceName: "(NCE) Microsoft 365 Business Standard"
+                              AccountId: "000000"
+                              PriceableItemDescription: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+                              BillableParameter: "Billing Type=Prepaid (with 1-year commitment) - P1Y Quantity=1"
+                              BillingStartDate: "2022-08-01T00:00:00"
+                              ActualChargeInterval: "01.08.2022 - 31.07.2023"
+                              SalesValue: "100.00"
+                              Currency: "USD"
+                              PriceableItemDescription2: ""
+                              ContractId: "00100000"
+                              EndUserName: "COnstPaner LTD"
+                              VendorReference: "{TGR5EW-0ErF3-342F-dE4T-DFFR3E2}"
+                              BillingType: " "
+                              ItemNo: "GTR33TR2:0001"
+                              ItemDescription: "MSFT365 Business Standard"
+                              StartDate: "2022-08-01"
+                              EndDate: "2023-07-31"
+                              Quantity: "3"
+                            - CompanyId: "0000000"
+                              InvoiceLineNo: "10002"
+                              ServiceId: "Micros365BusineStanda_1000"
+                              ServiceName: "(NCE) Microsoft 365 Business Standard"
+                              AccountId: "000000"
+                              PriceableItemDescription: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+                              BillableParameter: "Billing Type=Prepaid (with 1-year commitment) - P1Y Quantity=1"
+                              BillingStartDate: "2022-08-01T00:00:00"
+                              ActualChargeInterval: "01.08.2022 - 31.07.2023"
+                              SalesValue: "100.00"
+                              Currency: "USD"
+                              PriceableItemDescription2: ""
+                              ContractId: "00100000"
+                              EndUserName: "COnstPaner LTD"
+                              VendorReference: "{TGR5EW-0ErF3-342F-dE4T-DFFR3E2}"
+                              BillingType: " "
+                              ItemNo: "GTR33TR2:0003"
+                              ItemDescription: "MSFT365 Business Standard"
+                              StartDate: "08-01-2022"
+                              EndDate: "31-07-2022"
+                              Quantity: "3"
+                      - Invoice:
+                          'Invoice No': "CSPINV221234"
+                          BillToCustomerNo: "C0000"
+                          BillToCustomerName: "Input Smart Solutions"
+                          SellToCustomerNo: "C0000"
+                          SellToCustomerName: "Input Smart Solutions"
+                          PostingDate: "31-08-2022"
+                          DueDate: "31-08-2022"
+                          ExternalDocumentNo: "CSPBILLINGAUG'22/01"
+                          Currency: "USD"
+                          AmountExclVAT: "1,000.00"
+                          VATAmount: "19.19"
+                          AmountIncVAT: "1,019.19"
+                          'CSP Details':
+                            - CompanyId: "0000000"
+                              InvoiceLineNo: "10001"
+                              ServiceId: "Micros365BusineStanda_1000"
+                              ServiceName: "(NCE) Microsoft 365 Business Standard"
+                              AccountId: "000000"
+                              PriceableItemDescription: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+                              BillableParameter: "Billing Type=Prepaid (with 1-year commitment) - P1Y Quantity=1"
+                              BillingStartDate: "01-08-2022T00:00:00"
+                              ActualChargeInterval: "01.08.2022 - 31.07.2023"
+                              SalesValue: "100.00"
+                              Currency: "USD"
+                              PriceableItemDescription2: ""
+                              ContractId: "00100000"
+                              EndUserName: "COnstPaner LTD"
+                              VendorReference: "{TGR5EW-0ErF3-342F-dE4T-DFFR3E2}"
+                              BillingType: " "
+                              ItemNo: "GTR33TR2:0001"
+                              ItemDescription: "MSFT365 Business Standard"
+                              StartDate: "01-08-2022"
+                              EndDate: "31-07-2022"
+                              Quantity: "4"
+                            - CompanyId: "0000000"
+                              InvoiceLineNo: "10002"
+                              ServiceId: "Micros365BusineStanda_1000"
+                              ServiceName: "(NCE) Microsoft 365 Business Standard"
+                              AccountId: "000000"
+                              PriceableItemDescription: "(NCE) Microsoft 365 Business Standard with Billing Type Prepaid (with 1-year commitment) - P1Y per unit of Quantity"
+                              BillableParameter: "Billing Type=Prepaid (with 1-year commitment) - P1Y Quantity=1"
+                              BillingStartDate: "2022-08-01T00:00:00"
+                              ActualChargeInterval: "01.08.2022 - 31.07.2023"
+                              SalesValue: "100.00"
+                              Currency: "USD"
+                              PriceableItemDescription2: ""
+                              ContractId: "00100000"
+                              EndUserName: "COnstPaner LTD"
+                              VendorReference: "{TGR5EW-0ErF3-342F-dE4T-DFFR3E2}"
+                              BillingType: " "
+                              ItemNo: "GTR33TR2:0003"
+                              ItemDescription: "MSFT365 Business Standard"
+                              StartDate: "01-08-2022"
+                              EndDate: "31-07-2022"
+                              Quantity: "4"
+        '400':
+          description: Invalid request parameters or authentication failure.
+
+  /PostOrder:
+    post:
+      summary: Post Order
+      description: Use this API to create a new order in the system. It supports various order types including those with variants, ESD items, and end-user form details.
+      operationId: postOrder
+      security:
+        - AccessTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TimestampHeader'
+        - $ref: '#/components/parameters/SignatureHeader'
+        - $ref: '#/components/parameters/CustomerIDHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostOrderRequestBody'
+            examples:
+              MinimumRequiredFields:
+                summary: Example with minimum required fields.
+                value:
+                  StockVerification: 1
+                  ReferenceNo: "TEST REFERENCE"
+                  RequestedDeliveryDate: ""
+                  ShipToAddress:
+                    Id: ""
+                  DeliveryMethod: ""
+                  ShopAccountEmail: "eteam@logicom.net"
+                  Comments: "TEST COMMENTS."
+                  Items:
+                    - SKU: "HOGASHLOS"
+                      Quantity: 1
+              WithVariantItem:
+                summary: Example with a product variant.
+                value:
+                  StockVerification: 1
+                  ReferenceNo: "TEST REFERENCE"
+                  RequestedDeliveryDate: ""
+                  ShipToAddress:
+                    Id: ""
+                  DeliveryMethod: ""
+                  ShopAccountEmail: "eteam@logicom.net"
+                  Comments: "TEST COMMENTS."
+                  Items:
+                    - SKU: "HOGASHLOS"
+                      VariantId: "HOGASHLOS2"
+                      Quantity: 1
+              WithESDDetails:
+                summary: Example with ESD product details.
+                value:
+                  StockVerification: 1
+                  ReferenceNo: "ESD_ORDER_REF"
+                  RequestedDeliveryDate: ""
+                  ShipToAddress:
+                    Id: ""
+                  DeliveryMethod: ""
+                  ShopAccountEmail: "eteam@logicom.net"
+                  Comments: "ESD ORDER."
+                  Items:
+                    - SKU: "ESD_ITEM_SKU"
+                      Quantity: 1
+                  PONumber: "ESD_PO123"
+                  FirstName: "John"
+                  LastName: "Doe"
+                  Email: "john.doe@example.com"
+              WithEndUserForm:
+                summary: Example with End User Form details.
+                value:
+                  StockVerification: 1
+                  ReferenceNo: "EUF_ORDER_REF"
+                  RequestedDeliveryDate: ""
+                  ShipToAddress:
+                    Id: ""
+                  DeliveryMethod: ""
+                  ShopAccountEmail: "eteam@logicom.net"
+                  Comments: "END USER FORM ORDER."
+                  Items:
+                    - SKU: "EUF_ITEM_SKU"
+                      Quantity: 1
+                  EndUserCompany: "EndUserCorp"
+                  EndUserEmail: "enduser@example.com"
+                  EndUserContactName: "Jane Smith"
+                  EndUserAddress: "123 EndUser St"
+                  EndUserCity: "EndUserCity"
+                  EndUserPostalCode: "12345"
+                  EndUserCountry: "US"
+                  EndUserPhoneNumber: "1234567890"
+              FullBodyExample:
+                summary: Example with all possible fields.
+                value:
+                  PONumber: "PO456545"
+                  FirstName: "George"
+                  LastName: "Georgiou"
+                  Email: "eteam@logicom.net"
+                  EndUserCompany: "Company123"
+                  EndUserEmail: "eteam@logicom.net"
+                  EndUserContactName: "George G"
+                  EndUserAddress: "Street 1 Acropoli"
+                  EndUserCity: "Nicosia"
+                  EndUserPostalCode: "2145"
+                  EndUserCountry: "CY"
+                  EndUserPhoneNumber: "3578545212"
+                  StockVerification: 1
+                  ReferenceNo: "PO234344"
+                  RequestedDeliveryDate: "31-12-2022"
+                  InvoiceType: "DubaiLLC"
+                  ShipToAddress:
+                    Id: ""
+                  DeliveryMethod: "Default"
+                  ShopAccountEmail: "H.HADJIGEORGIOU@LOGICOM.NET"
+                  Comments: "TEST COMMENTS. "
+                  Items:
+                    - SKU: "076-05905"
+                      VariantId: "076"
+                      Quantity: 10
+      responses:
+        '200':
+          description: Order placed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSuccessResponse'
+              example:
+                StatusCode: 1
+                Status: "OK"
+                Message: "Order placed successfully."
+        '400':
+          description: Bad Request - Order failed due to validation or stock issues.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderErrorResponse'
+              examples:
+                StockError:
+                  value:
+                    StatusCode: 0
+                    Status: "Error"
+                    Message: "Item C7115X has availability of 5 instead of requested 16."
+                ESDFormError:
+                  value:
+                    StatusCode: 0
+                    Status: "Error"
+                    Message: "Error: Item 6GQ-00092 - Please Complete the ESD Form - Email Missing"
+                EndUserFormError:
+                  value:
+                    StatusCode: 0
+                    Status: "Error"
+                    Message: "Error: Item 3-CBW140AC-E - Please Complete the End User Form - User Company Missing"

@@ -2,13 +2,15 @@ server:
   port: 9090
   address: localhost
 
-woocommerce:
-  api:
-    key: fakeKey
-    secret: fakeSecret
-
 logicom:
   api:
-    access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlJhbmRvbSBUb2tlbiIsImlhdCI6MTcxMDg3NjAwMCwiZXhwIjoxNzQyNDEyMDAwLCJzaWduaW5nX2tleSI6IjQ5ZTkwNDk4YzVhYjQ1YjViOTBlYTM0M2QyYmE2MWU3In0.3lI5q3h7L2q9W8Q1vP4tR6yN0bK7X2Z8C
-    access-token-key: Y2xrqXsPg3vCCsGaWBbNJRgYNMKCnvn8gwfoxy7dXeY=
     customer-id: 1234
+    consumer-key: key-1234
+    consumer-secret: secret-1234
+    access-token-key: Y2xrqXsPg3vCCsGaWBbNJRgYNMKCnvn8gwfoxy7dXeY=
+
+woocommerce:
+  api:
+    url: secret
+    key: 1234
+    secret: secret-123

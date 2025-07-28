@@ -2,8 +2,15 @@ server:
   port: 9090
   address: localhost
 
+logicom:
+  api:
+    customer-id: 1234
+    consumer-key: key-1234
+    consumer-secret: secret-1234
+    access-token-key: Y2xrqXsPg3vCCsGaWBbNJRgYNMKCnvn8gwfoxy7dXeY=
+
 woocommerce:
   api:
-    url: https://fake-woocommerce.test
-    key: fakeKey
-    secret: fakeSecret
+    url: secret
+    key: 1234
+    secret: secret-123

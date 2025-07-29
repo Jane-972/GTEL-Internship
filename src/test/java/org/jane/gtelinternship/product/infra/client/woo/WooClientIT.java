@@ -41,7 +41,7 @@ class WooClientIT extends IntegrationTestBase {
 
         stubFor(WireMock.get(urlPathEqualTo("/woo/wp-json/wc/v3/products"))
                 .withQueryParam("sku", equalTo(sku))
-                .withBasicAuth("fakeKey", "fakeSecret") // We don't need to check all the time
+                .withBasicAuth("1234", "secret-1234") // We don't need to check all the time
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")

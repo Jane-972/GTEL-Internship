@@ -18,10 +18,12 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-      .authorizeHttpRequests((requests) -> requests
-        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-        .anyRequest().permitAll() // For now, allow all requests
-      )
+      .authorizeHttpRequests(requests -> requests
+      .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+      .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+      .requestMatchers("/api/users/me").authenticated() // Require auth here
+      .anyRequest().permitAll()
+    )
       .httpBasic(configurer -> {
       })
       .csrf(AbstractHttpConfigurer::disable)

@@ -8,9 +8,7 @@ server:
 #Logs
 logging:
   level:
-    root: DEBUG
     org.springframework.web: DEBUG
-    org.jane.gtelinternship.product.infra.client.logicom.TokenProvider: DEBUG
 
 logicom:
   api:

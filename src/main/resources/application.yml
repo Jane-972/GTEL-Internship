@@ -5,16 +5,18 @@ spring:
 server:
   port: 8089
 
-
-
+#Logs
+logging:
+  level:
+    org.springframework.web: DEBUG
 
 logicom:
   api:
     url: https://quickconnect.logicompartners.com
-    customer-id: 1234
-    consumer-key: 1234
-    consumer-secret: 1234
-    access-token-key: 1234
+    customer-id: 2073
+    consumer-key: c555JbpeWjar6q25bhfRV1ogIrq5F8
+    consumer-secret: mHU87c9Lcf1xPZRhMAInfv6ld5ryX7
+    access-token-key: 7mvmOzYYvZ4wyViklNXKGOc4cd0CGM6G
 
 woocommerce:
     api:

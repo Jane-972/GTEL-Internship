@@ -29,7 +29,6 @@ public class LogicomClient {
       .retrieve()
       .body(String.class);
 
-
     System.out.println("RAW BODY = " + body);
 
     // Deserialize manually

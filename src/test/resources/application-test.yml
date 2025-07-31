@@ -7,7 +7,7 @@ logicom:
     customer-id: 1234
     consumer-key: key-1234
     consumer-secret: secret-1234
-    access-token-key: Y2xrqXsPg3vCCsGaWBbNJRgYNMKCnvn8gwfoxy7dXeY=
+    access-token-key: d3555e120198e5da56b67ef13b771925
 
 woocommerce:
   api:

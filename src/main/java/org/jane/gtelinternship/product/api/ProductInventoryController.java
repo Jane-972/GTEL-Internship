@@ -1,5 +1,6 @@
 package org.jane.gtelinternship.product.api;
 
+import org.jane.gtelinternship.product.api.dto.ProductInventoryResponseDto;
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
 import org.jane.gtelinternship.product.domain.service.InventoryService;
 import org.jane.gtelinternship.product.infra.client.logicom.dto.ProductInventoryResponseDto;

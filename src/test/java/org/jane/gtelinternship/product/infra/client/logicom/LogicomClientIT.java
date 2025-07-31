@@ -15,6 +15,20 @@ class LogicomClientIT extends IntegrationTestBase {
   private LogicomClient logicomClient;
 
   @Test
+  void shouldFetchEmptyProductInventory() {
+    stubFor(WireMock.get(urlPathEqualTo("/logicom/api/GetInventory"))
+      .withQueryParam("ProductID", equalTo(String.join(";", testSkus)))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withHeader("Content-Type", "application/json")
+        .withBodyFile("logicom/GetInventory/EmptyProductsSuccess.json"))
+    );
+
+    var result = logicomClient.getProductInventory(testSkus);
+    assertEquals(0, result.products().size());
+  }
+
+  @Test
   void shouldFetchProductInventory() {
     stubFor(WireMock.get(urlPathEqualTo("/logicom/api/GetInventory"))
       .withQueryParam("ProductID", equalTo(String.join(";", testSkus)))

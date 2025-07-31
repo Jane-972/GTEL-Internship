@@ -8,6 +8,8 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import static org.jane.gtelinternship.common.encrypt.EncryptionUtil.encrypt;
 
@@ -45,10 +47,16 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
     return response;
   }
 
+  private static String buildTokenSignature(String accessTokenKey, String accessToken, long timestamp) {
+    String tokenWithTimeStamp = accessToken + timestamp;
+    String tokenWithTimeStampEncoded = Base64.getEncoder().encodeToString(tokenWithTimeStamp.getBytes(StandardCharsets.UTF_8));
+    return encrypt(accessTokenKey, tokenWithTimeStampEncoded);
+  }
+
   public void addHeaders(HttpRequest request, long timestamp, String accessToken) {
     request.getHeaders().setBearerAuth(tokenProvider.getAccessToken());
     request.getHeaders().set("Timestamp", String.valueOf(timestamp));
-    request.getHeaders().set("Signature", encrypt(config.getAccessTokenKey(), accessToken + timestamp));
+    request.getHeaders().set("Signature", buildTokenSignature(config.getAccessTokenKey(), accessToken, timestamp));
     request.getHeaders().set("CustomerID", String.valueOf(config.getCustomerId()));
   }
 }

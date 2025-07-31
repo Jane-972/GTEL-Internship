@@ -10,7 +10,8 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClient;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Configuration
 @Getter
@@ -46,10 +47,12 @@ public class LogicomClientConfig {
 
         // Create a Jackson converter that also handles text/plain
         MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
-        jacksonConverter.setSupportedMediaTypes(Arrays.asList(
+        jacksonConverter.setSupportedMediaTypes(List.of(
           MediaType.APPLICATION_JSON,
-          MediaType.TEXT_PLAIN  // Add support for text/plain
+          MediaType.TEXT_PLAIN,
+          new MediaType("text", "plain", StandardCharsets.UTF_8)
         ));
+
 
         // Add our modified converter
         converters.add(0, jacksonConverter);

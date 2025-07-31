@@ -1,6 +1,8 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
+
 import org.jane.gtelinternship.common.service.DateTimeProvider;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -50,11 +52,14 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
   private static String buildTokenSignature(String accessTokenKey, String accessToken, long timestamp) {
     String tokenWithTimeStamp = accessToken + timestamp;
     String tokenWithTimeStampEncoded = Base64.getEncoder().encodeToString(tokenWithTimeStamp.getBytes(StandardCharsets.UTF_8));
-    return encrypt(accessTokenKey, tokenWithTimeStampEncoded);
+    String token = encrypt(accessTokenKey, accessToken + timestamp);
+    return Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
   }
 
   public void addHeaders(HttpRequest request, long timestamp, String accessToken) {
-    request.getHeaders().setBearerAuth(tokenProvider.getAccessToken());
+    String token = tokenProvider.getAccessToken();
+    request.getHeaders().set(HttpHeaders.AUTHORIZATION, token);
+    System.out.println("The token is " + token);
     request.getHeaders().set("Timestamp", String.valueOf(timestamp));
     request.getHeaders().set("Signature", buildTokenSignature(config.getAccessTokenKey(), accessToken, timestamp));
     request.getHeaders().set("CustomerID", String.valueOf(config.getCustomerId()));

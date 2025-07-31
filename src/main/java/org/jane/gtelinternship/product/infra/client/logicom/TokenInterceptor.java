@@ -50,8 +50,6 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
   }
 
   private static String buildTokenSignature(String accessTokenKey, String accessToken, long timestamp) {
-    String tokenWithTimeStamp = accessToken + timestamp;
-    String tokenWithTimeStampEncoded = Base64.getEncoder().encodeToString(tokenWithTimeStamp.getBytes(StandardCharsets.UTF_8));
     String token = encrypt(accessTokenKey, accessToken + timestamp);
     return Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
   }

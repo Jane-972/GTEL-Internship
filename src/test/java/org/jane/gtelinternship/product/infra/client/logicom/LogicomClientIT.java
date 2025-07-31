@@ -29,6 +29,20 @@ class LogicomClientIT extends IntegrationTestBase {
   }
 
   @Test
+  void shouldFetchEmptyProductInventoryWithPlainTextHeader() {
+    stubFor(WireMock.get(urlPathEqualTo("/logicom/api/GetInventory"))
+      .withQueryParam("ProductID", equalTo(String.join(";", testSkus)))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withHeader("Content-Type", "text/plain;charset=utf-8")
+        .withBodyFile("logicom/GetInventory/EmptyProductsSuccess.json"))
+    );
+
+    var result = logicomClient.getProductInventory(testSkus);
+    assertEquals(0, result.products().size());
+  }
+
+  @Test
   void shouldFetchProductInventory() {
     stubFor(WireMock.get(urlPathEqualTo("/logicom/api/GetInventory"))
       .withQueryParam("ProductID", equalTo(String.join(";", testSkus)))

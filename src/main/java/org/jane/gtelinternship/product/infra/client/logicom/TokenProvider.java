@@ -51,7 +51,7 @@ public class TokenProvider {
       String signature = encrypt(config.getAccessTokenKey(), config.getConsumerKey() + config.getCustomerId() + timeStamp + ";" + config.getConsumerSecret());
 
       this.accessToken = restClient.get()
-        .uri(config.getBaseUrl() + "/GenerateAccessToken")
+        .uri(config.getBaseUrl() + "/api/GenerateAccessToken")
         .header("CustomerId", config.getCustomerId().toString())
         .header("Timestamp", timeStamp)
         .header("BCode", bCode)

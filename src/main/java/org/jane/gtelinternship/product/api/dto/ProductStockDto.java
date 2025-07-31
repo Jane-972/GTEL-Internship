@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.infra.client.logicom.dto;
+package org.jane.gtelinternship.product.api.dto;
 
 import org.jane.gtelinternship.product.domain.model.ProductStock;
 

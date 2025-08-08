@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.api.dto;
+package org.jane.gtelinternship.product.api.dto.response;
 
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
 

@@ -1,9 +1,8 @@
-package org.jane.gtelinternship.product.api;
+package org.jane.gtelinternship.product.api.controller;
 
-import org.jane.gtelinternship.product.api.dto.ProductInventoryResponseDto;
+import org.jane.gtelinternship.product.api.dto.response.ProductInventoryResponseDto;
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
 import org.jane.gtelinternship.product.domain.service.InventoryService;
-import org.jane.gtelinternship.product.infra.client.logicom.dto.ProductInventoryResponseDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

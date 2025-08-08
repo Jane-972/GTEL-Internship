@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.infra.client.logicom.dto;
+package org.jane.gtelinternship.product.infra.client.logicom.mapper;
 
 
 import org.jane.gtelinternship.product.domain.model.ProductInventory;

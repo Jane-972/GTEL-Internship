@@ -23,6 +23,6 @@ logicom:
 
 woocommerce:
     api:
-      url: secret
-      key: 1234
-      secret: secret-123
+      url: https://gtelstore.ma
+      key: ck_d902d05533429411d140e2c61b0471a5b3f16097
+      secret: cs_0793e120ea2c088bb0aa6e10a930156172f1d316

@@ -57,7 +57,7 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
   public void addHeaders(HttpRequest request, long timestamp, String accessToken) {
     String token = tokenProvider.getAccessToken();
     request.getHeaders().set(HttpHeaders.AUTHORIZATION, token);
-    System.out.println("The token is " + token);
+    //System.out.println("The token is " + token);
     request.getHeaders().set("Timestamp", String.valueOf(timestamp));
     request.getHeaders().set("Signature", buildTokenSignature(config.getAccessTokenKey(), accessToken, timestamp));
     request.getHeaders().set("CustomerID", String.valueOf(config.getCustomerId()));

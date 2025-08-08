@@ -5,6 +5,7 @@ import org.jane.gtelinternship.product.infra.client.woo.dto.WooProductDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -62,5 +63,20 @@ public class WooClient {
             return updateStock(product.id(), stockQuantity);
         }
         throw new NotFoundException("Product not found with SKU: " + sku);
+    }
+
+    public List<WooProductDto> getAllProductsFull() {
+        int page = 1;
+        int perPage = 100;
+        List<WooProductDto> allProducts = new ArrayList<>();
+
+        while (true) {
+            List<WooProductDto> pageProducts = getAllProducts(page, perPage);
+            if (pageProducts.isEmpty()) break;
+            allProducts.addAll(pageProducts);
+            page++;
+        }
+
+        return allProducts;
     }
 }

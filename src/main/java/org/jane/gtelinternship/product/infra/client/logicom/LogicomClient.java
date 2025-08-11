@@ -1,9 +1,10 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.jane.gtelinternship.common.exception.NotFoundException;
 import org.jane.gtelinternship.logicom.InventoryResponseDto;
 import org.jane.gtelinternship.product.domain.model.FullProduct;
 import org.jane.gtelinternship.product.domain.model.LogicomProduct;
@@ -85,7 +86,7 @@ public class LogicomClient {
   }
 
   @SneakyThrows
-  @Nullable
+  @NotNull
   public FullProduct<LogicomProduct> getProductBySku(String sku) {
     var response = logicomRestClient.get()
       .uri(uriBuilder -> uriBuilder
@@ -98,7 +99,12 @@ public class LogicomClient {
     var dto = objectMapper.readValue(response, GetProductsResponseDto.class);
     var productList = ProductDtoMapper.mapToDomain(dto.Message()).toList();
 
-    return productList.isEmpty() ? null : productList.getFirst();
+    if (productList.isEmpty()) {
+      log.warn("No product found for SKU: {}", sku);
+      throw new NotFoundException("Product with SKU " + sku + " not found in WooCommerce.");
+    } else {
+      return productList.getFirst();
+    }
   }
 
   @SneakyThrows

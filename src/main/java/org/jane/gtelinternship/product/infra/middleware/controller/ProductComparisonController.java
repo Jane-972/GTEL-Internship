@@ -2,7 +2,9 @@ package org.jane.gtelinternship.product.infra.middleware.controller;
 
 import org.jane.gtelinternship.product.infra.middleware.dto.ProductComparisonDto;
 import org.jane.gtelinternship.product.infra.middleware.service.ProductComparisonService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,4 +24,14 @@ public class ProductComparisonController {
   public List<ProductComparisonDto> getWooLogicomComparison() {
     return productComparisonService.getComparisonList();
   }
+
+  @GetMapping("/woo-logicom/{sku}")
+  public ResponseEntity<ProductComparisonDto> getWooLogicomComparisonBySku(@PathVariable String sku) {
+    ProductComparisonDto comparison = productComparisonService.getComparisonBySku(sku);
+    if (comparison == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok(comparison);
+  }
+
 }

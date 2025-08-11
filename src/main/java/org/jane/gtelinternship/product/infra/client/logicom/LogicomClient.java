@@ -18,6 +18,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import static org.jane.gtelinternship.product.infra.client.logicom.mapper.InventoryDtoMapper.mapToDomain;
 
 @Service
@@ -30,6 +34,8 @@ public class LogicomClient {
     this.logicomRestClient = logicomRestClient;
     this.objectMapper = objectMapper;
   }
+  private static final Logger log = LoggerFactory.getLogger(LogicomClient.class);
+
 
   @SneakyThrows
   public ProductInventory getProductInventory(List<String> skus) {
@@ -40,7 +46,8 @@ public class LogicomClient {
         .build())
       .retrieve()
       .body(String.class);
-
+    String productIds = String.join(";", skus);
+    log.info("Calling /api/GetInventory with ProductID={}", productIds);
     return mapToDomain(objectMapper.readValue(body, InventoryResponseDto.class));
   }
   @SneakyThrows

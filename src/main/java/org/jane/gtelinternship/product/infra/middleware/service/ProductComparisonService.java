@@ -41,18 +41,10 @@ public class ProductComparisonService {
       ProductResponseDto logicomProduct = logicomMap.get(sku);
 
       double wooPrice = wooProduct.price() != null ? wooProduct.price() : 0.0;
+      double logicomPrice = parsePrice(logicomProduct);
 
-      double logicomPrice = 0.0;
-      if (logicomProduct != null && logicomProduct.price() != null) {
-        try {
-          logicomPrice = Double.parseDouble(logicomProduct.price().PriceExclVAT());
-        } catch (NumberFormatException e) {
-
-        }
-      }
-
-      double difference = wooPrice - logicomPrice;
-      String status = difference == 0.0 ? "synced" : "to_update";
+      double difference = Math.round((wooPrice - logicomPrice) * 100.0) / 100.0;
+      String status = (difference == 0.0) ? "synced" : "to_update";
 
       comparisonList.add(new ProductComparisonDto(
         wooProduct.name(),
@@ -66,6 +58,57 @@ public class ProductComparisonService {
 
     return comparisonList;
   }
+
+  /**
+   * Parse Logicom's PriceExclVAT (removes commas and handles nulls)
+   */
+  private double parsePrice(ProductResponseDto logicomProduct) {
+    if (logicomProduct == null || logicomProduct.price() == null) {
+      return 0.0;
+    }
+    try {
+      return Double.parseDouble(
+        logicomProduct.price().PriceExclVAT().replace(",", "")
+      );
+    } catch (NumberFormatException e) {
+      return 0.0;
+    }
+  }
+
+
+  public ProductComparisonDto getComparisonBySku(String sku) {
+    WooProductDto wooProduct = wooClient.getProductBySku(sku);
+    ProductResponseDto logicomProduct = logicomService.getProductFullBySku(sku);
+
+    if (wooProduct == null && logicomProduct == null) {
+      return null;
+    }
+
+    double wooPrice = wooProduct != null && wooProduct.price() != null ? wooProduct.price() : 0.0;
+    double logicomPrice = 0.0;
+
+    if (logicomProduct != null && logicomProduct.price() != null) {
+      try {
+        logicomPrice = Double.parseDouble(
+          logicomProduct.price().PriceExclVAT().replace(",", "")
+        );
+      } catch (NumberFormatException ignored) {}
+    }
+
+    double difference = Math.round((wooPrice - logicomPrice) * 100.0) / 100.0;
+    String status = difference == 0.0 ? "synced" : "to_update";
+
+    return new ProductComparisonDto(
+      wooProduct != null ? wooProduct.name() : logicomProduct.name(),
+      sku,
+      wooPrice,
+      logicomPrice,
+      difference,
+      status
+    );
+  }
+
+
 
 
   private String extractSkuFromName(String name) {

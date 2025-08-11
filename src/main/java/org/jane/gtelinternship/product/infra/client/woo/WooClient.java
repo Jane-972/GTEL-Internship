@@ -19,11 +19,20 @@ public class WooClient {
     }
 
     public WooProductDto getProductBySku(String sku) {
-        return wooRestClient.get()
-                .uri("/wp-json/wc/v3/products?sku={sku}", sku)
-                .retrieve()
-                .toEntity(WooProductDto.class)
-                .getBody();
+        String searchTerm = "(" + sku + ")";
+        WooProductDto[] products = wooRestClient.get()
+          .uri(uriBuilder -> uriBuilder
+            .path("/wp-json/wc/v3/products")
+            .queryParam("search", searchTerm)
+            .build()
+          )
+          .retrieve()
+          .body(WooProductDto[].class);
+
+        if (products != null && products.length > 0) {
+            return products[0];
+        }
+        return null;
     }
 
     public List<WooProductDto> getAllProducts(int page, int perPage) {

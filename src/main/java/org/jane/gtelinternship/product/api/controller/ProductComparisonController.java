@@ -1,7 +1,7 @@
-package org.jane.gtelinternship.product.infra.middleware.controller;
+package org.jane.gtelinternship.product.api.controller;
 
-import org.jane.gtelinternship.product.infra.middleware.dto.ProductComparisonDto;
-import org.jane.gtelinternship.product.infra.middleware.service.ProductComparisonService;
+import org.jane.gtelinternship.product.api.dto.response.ProductComparisonDto;
+import org.jane.gtelinternship.product.domain.service.ProductComparisonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comparison")
+@RequestMapping("/products/comparison")
 public class ProductComparisonController {
 
   private final ProductComparisonService productComparisonService;
@@ -20,12 +20,12 @@ public class ProductComparisonController {
     this.productComparisonService = productComparisonService;
   }
 
-  @GetMapping("/woo-logicom")
+  @GetMapping
   public List<ProductComparisonDto> getWooLogicomComparison() {
     return productComparisonService.getComparisonList();
   }
 
-  @GetMapping("/woo-logicom/{sku}")
+  @GetMapping("{sku}")
   public ResponseEntity<ProductComparisonDto> getWooLogicomComparisonBySku(@PathVariable String sku) {
     ProductComparisonDto comparison = productComparisonService.getComparisonBySku(sku);
     if (comparison == null) {
@@ -33,5 +33,4 @@ public class ProductComparisonController {
     }
     return ResponseEntity.ok(comparison);
   }
-
 }

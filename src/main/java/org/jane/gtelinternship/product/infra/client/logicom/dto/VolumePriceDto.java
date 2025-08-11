@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.api.dto.response;
+package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
 public record VolumePriceDto(
   int Quantity,

@@ -2,25 +2,22 @@ package org.jane.gtelinternship.product.infra.client.logicom;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.jane.gtelinternship.product.api.dto.response.GetProductPricesResponseDto;
-import org.jane.gtelinternship.product.api.dto.response.PriceDto;
 import org.jane.gtelinternship.product.domain.model.Product;
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
-import org.jane.gtelinternship.product.api.dto.response.GetProductsResponseDto;
+import org.jane.gtelinternship.product.domain.model.ProductPrice;
+import org.jane.gtelinternship.product.infra.client.logicom.dto.GetProductPricesResponseDto;
+import org.jane.gtelinternship.product.infra.client.logicom.dto.GetProductsResponseDto;
 import org.jane.gtelinternship.product.infra.client.logicom.mapper.PriceDtoMapper;
 import org.jane.gtelinternship.product.infra.client.logicom.mapper.ProductDtoMapper;
 import org.openapi.example.model.InventoryResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static org.jane.gtelinternship.product.infra.client.logicom.mapper.InventoryDtoMapper.mapToDomain;
 
@@ -34,6 +31,7 @@ public class LogicomClient {
     this.logicomRestClient = logicomRestClient;
     this.objectMapper = objectMapper;
   }
+
   private static final Logger log = LoggerFactory.getLogger(LogicomClient.class);
 
 
@@ -50,6 +48,7 @@ public class LogicomClient {
     log.info("Calling /api/GetInventory with ProductID={}", productIds);
     return mapToDomain(objectMapper.readValue(body, InventoryResponseDto.class));
   }
+
   @SneakyThrows
   public List<Product> getFirst10Products() {
     var body = logicomRestClient.get()
@@ -64,7 +63,7 @@ public class LogicomClient {
   }
 
   @SneakyThrows
-  public Map<String, PriceDto> getProductPrices(List<String> skus) {
+  public Map<String, ProductPrice> getProductPrices(List<String> skus) {
     var response = logicomRestClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/api/GetPrice")
@@ -74,11 +73,19 @@ public class LogicomClient {
       .body(String.class);
 
     var prices = objectMapper.readValue(response, GetProductPricesResponseDto.class);
-    return prices.Message().stream()
-      .map(PriceDtoMapper::from)
-      .collect(Collectors.toMap(PriceDto::sku, Function.identity()));
 
+    return prices.Message()
+      .stream()
+      .collect(
+        HashMap::new,
+        (map, elem) -> map.put(
+          elem.SKU(),
+          PriceDtoMapper.from(elem)
+        ),
+        HashMap::putAll
+      );
   }
+
   @SneakyThrows
   public Product getProductBySku(String sku) {
     var response = logicomRestClient.get()
@@ -94,6 +101,7 @@ public class LogicomClient {
 
     return productList.isEmpty() ? null : productList.get(0);
   }
+
   @SneakyThrows
   public List<Product> getProductsPage(String previousItemNo) {
     var uriBuilder = logicomRestClient.get()

@@ -3,70 +3,69 @@ package org.jane.gtelinternship.product.domain.service;
 
 import lombok.RequiredArgsConstructor;
 import org.jane.gtelinternship.common.exception.NotFoundException;
-import org.jane.gtelinternship.product.api.dto.response.PriceDto;
-import org.jane.gtelinternship.product.api.dto.response.ProductResponseDto;
-import org.jane.gtelinternship.product.domain.model.Product;
-import org.jane.gtelinternship.product.domain.model.ProductInventory;
-import org.jane.gtelinternship.product.domain.model.ProductStock;
+import org.jane.gtelinternship.product.domain.model.*;
 import org.jane.gtelinternship.product.infra.client.logicom.LogicomClient;
-import org.jane.gtelinternship.product.infra.client.logicom.TokenProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static org.jane.gtelinternship.common.util.ListUtil.batchList;
 
 @Service
 @RequiredArgsConstructor
 public class LogicomService {
   private final LogicomClient logicomClient;
-  private final TokenProvider tokenProvider;
 
-  public List<ProductResponseDto> getFirst10ProductsFull() {
+  public Stream<Product> getFirst10Products() {
+    return logicomClient.getFirst10Products().stream();
+  }
+  public Stream<FullProduct> getFirst10ProductsFull() {
     List<Product> products = logicomClient.getFirst10Products();
     List<String> skus = products.stream().map(Product::sku).toList();
 
     ProductInventory inventory = logicomClient.getProductInventory(skus);
-    Map<String, PriceDto> prices = logicomClient.getProductPrices(skus);
+    Map<String, ProductPrice> skuToPrice = logicomClient.getProductPrices(skus);
 
-    return products.stream().map(product -> new ProductResponseDto(
-      product.sku(),
-      product.name(),
-      product.brand(),
-      prices.get(product.sku()),
-      inventory.findBySku(product.sku())
-    )).toList();
+    return products.stream().map(product -> new FullProduct(
+      product,
+      skuToPrice.get(product.sku()),
+      inventory.findBySku(product.sku()).availableQuantity()
+    ));
   }
 
-  public ProductResponseDto getProductFullBySku(String sku) {
+  public FullProduct getProductFullBySku(String sku) {
     Product product = logicomClient.getProductBySku(sku);
     if (product == null) {
       throw new NotFoundException("Product with SKU " + sku + " not found.");
     }
 
     ProductInventory inventory = logicomClient.getProductInventory(List.of(sku));
-    Map<String, PriceDto> prices = logicomClient.getProductPrices(List.of(sku));
+    Map<String, ProductPrice> prices = logicomClient.getProductPrices(List.of(sku));
 
-    return new ProductResponseDto(
-      product.sku(),
-      product.name(),
-      product.brand(),
+    return new FullProduct(
+      product,
       prices.get(sku),
-      inventory.findBySku(sku)
+      inventory.findBySku(sku).availableQuantity()
     );
   }
-  public List<ProductResponseDto> getAllProductsFull() {
-    tokenProvider.refreshTokens(); // Tried to force the refresh before looping
 
+  // TODO: Doesn't work?
+  public Stream<FullProduct> getAllProductsFull() {
     List<Product> allProducts = new ArrayList<>();
     String previousItemNo = null;
 
     // Load all products page by page
-    while (true) {
+    var hasNextPage = true;
+    while (hasNextPage) {
       List<Product> page = logicomClient.getProductsPage(previousItemNo);
 
-      if (page.isEmpty()) break;
-
-      allProducts.addAll(page);
-      previousItemNo = page.get(page.size() - 1).sku();
+      if (page.isEmpty()) {
+        hasNextPage = false;
+      } else {
+        allProducts.addAll(page);
+        previousItemNo = page.getLast().sku();
+      }
     }
 
     // Collect all SKUs
@@ -75,55 +74,47 @@ public class LogicomService {
       .toList();
 
     // Batch SKUs
-    int batchSize = 30;
-    List<List<String>> skuBatches = new ArrayList<>();
-    for (int i = 0; i < allSkus.size(); i += batchSize) {
-      int end = Math.min(i + batchSize, allSkus.size());
-      skuBatches.add(allSkus.subList(i, end));
-    }
+    List<List<String>> skuBatches = batchList(allSkus, 30);
 
+    // TODO: Move and adjust
     // Fetch inventory in batches and merge results
-    List<ProductStock> allProductStocks = new ArrayList<>();
-    for (List<String> batch : skuBatches) {
-      ProductInventory batchInventory = logicomClient.getProductInventory(batch);
-      if (batchInventory != null && !batchInventory.isEmpty()) {
-        allProductStocks.addAll(batchInventory.products());
-      }
-    }
-    ProductInventory combinedInventory = new ProductInventory(allProductStocks);
+    List<ProductStock> allProductStocks = skuBatches
+      .stream()
+      .map(logicomClient::getProductInventory)
+      .filter(Objects::nonNull)
+      .filter(inventory -> !inventory.isEmpty())
+      .flatMap(inventory -> inventory.products().stream())
+      .toList();
 
+    // TODO: move and avoid dto
     // Fetch prices in batches and merge results
-    Map<String, PriceDto> allPrices = new HashMap<>();
-    for (List<String> batch : skuBatches) {
-      Map<String, PriceDto> batchPrices = logicomClient.getProductPrices(batch);
-      if (batchPrices != null && !batchPrices.isEmpty()) {
-        allPrices.putAll(batchPrices);
-      }
-    }
+    Map<String, ProductPrice> skuToPrice = skuBatches
+      .stream()
+      .map(logicomClient::getProductPrices)
+      .reduce(new HashMap<>(), (acc, map) -> {
+        acc.putAll(map);
+        return acc;
+      });
+
+    ProductInventory combinedInventory = new ProductInventory(allProductStocks);
 
     // Map products to ProductResponseDto including merged inventory and prices
     return allProducts.stream()
       .map(product -> {
-        PriceDto price = allPrices.get(product.sku());
-        if (price == null) return null;
+        ProductPrice price = skuToPrice.get(product.sku());
+        ProductStock stock = combinedInventory.findBySku(product.sku());
 
-        double logicomPrice = 0.0;
-        try {
-          logicomPrice = Double.parseDouble(price.PriceExclVAT().replace(",", ""));
-        } catch (NumberFormatException e) {
+        if (price == null || stock == null) {
+          return null;
+        } else {
+          return new FullProduct(
+            product,
+            price,
+            stock.availableQuantity()
+          );
         }
-        if (logicomPrice <= 0) return null;
-
-        return new ProductResponseDto(
-          product.sku(),
-          product.name(),
-          product.brand(),
-          price,
-          combinedInventory.findBySku(product.sku())
-        );
       })
-      .filter(Objects::nonNull)
-      .toList();
+      .filter(Objects::nonNull);
   }
 
 

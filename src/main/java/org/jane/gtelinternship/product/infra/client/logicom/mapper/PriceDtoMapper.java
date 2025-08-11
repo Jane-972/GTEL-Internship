@@ -1,16 +1,27 @@
 package org.jane.gtelinternship.product.infra.client.logicom.mapper;
 
-import org.jane.gtelinternship.product.api.dto.response.PriceDto;
-import org.jane.gtelinternship.product.api.dto.response.ProductPriceDto;
+import jakarta.annotation.Nullable;
+import org.jane.gtelinternship.product.domain.model.ProductPrice;
+import org.jane.gtelinternship.product.infra.client.logicom.dto.ProductPriceDto;
+
+import java.util.Currency;
+
+import static org.jane.gtelinternship.product.infra.client.logicom.mapper.LogicomPriceUtil.parsePrice;
 
 public class PriceDtoMapper {
-  public static PriceDto from(ProductPriceDto dto) {
-    return new PriceDto(
-      dto.SKU(),
-      dto.PriceExclVAT(),
-      dto.VAT(),
-      dto.RecycleTax(),
-      dto.Currency()
-    );
+  @Nullable
+  public static ProductPrice from(ProductPriceDto dto) {
+    Double amountExclVat = parsePrice(dto.PriceExclVAT());
+    Double vat = parsePrice(dto.VAT());
+
+    if (amountExclVat == null || vat == null) {
+      return null;
+    } else {
+      return new ProductPrice(
+        amountExclVat,
+        vat,
+        Currency.getInstance(dto.Currency())
+      );
+    }
   }
 }

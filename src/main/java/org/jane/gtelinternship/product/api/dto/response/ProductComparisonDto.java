@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.infra.middleware.dto;
+package org.jane.gtelinternship.product.api.dto.response;
 
 public record ProductComparisonDto(
   String name,

@@ -1,9 +1,12 @@
 package org.jane.gtelinternship.product.infra.client.logicom.mapper;
 
-import org.jane.gtelinternship.product.api.dto.response.ProductDto;
 import org.jane.gtelinternship.product.domain.model.Product;
+import org.jane.gtelinternship.product.infra.client.logicom.dto.ProductDto;
 
+import java.util.Currency;
 import java.util.List;
+
+import static org.jane.gtelinternship.product.infra.client.logicom.mapper.LogicomPriceUtil.parsePrice;
 
 public class ProductDtoMapper {
 
@@ -26,12 +29,9 @@ public class ProductDtoMapper {
       dto.Manufacturer(),
       dto.Description(),
       dto.Category(),
-      price != null ? price.PriceExclVAT() : null,
-      price != null ? price.VAT() : null,
-      price != null ? price.RecycleTax() : null,
-      price != null ? price.Currency() : null,
-      dto.IntelPoints(),
-      dto.Warranty(),
+      price != null ? parsePrice(price.PriceExclVAT()) : null,
+      price != null ? parsePrice(price.VAT()) : null,
+      price != null ? Currency.getInstance(price.Currency()) : null,
       dto.Images()
     );
   }

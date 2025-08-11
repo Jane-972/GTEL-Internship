@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.api.dto.response;
+package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public record ProductDto(
   String IsEUItem,
   String Barcode,
   String HasVariantProducts,
-  PriceDto Price,
+  LogicomPriceDto Price,
   int IntelPoints,
   String Warranty,
   List<SpecificationDto> Specifications,

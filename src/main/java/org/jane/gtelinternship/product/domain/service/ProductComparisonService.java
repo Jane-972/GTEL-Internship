@@ -3,8 +3,9 @@ package org.jane.gtelinternship.product.domain.service;
 import org.jane.gtelinternship.common.exception.NotFoundException;
 import org.jane.gtelinternship.product.api.dto.response.ProductComparisonDto;
 import org.jane.gtelinternship.product.domain.model.FullProduct;
+import org.jane.gtelinternship.product.domain.model.LogicomProduct;
+import org.jane.gtelinternship.product.domain.model.WooProduct;
 import org.jane.gtelinternship.product.infra.client.woo.WooClient;
-import org.jane.gtelinternship.product.infra.client.woo.dto.WooProductDto;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,27 +27,25 @@ public class ProductComparisonService {
   }
 
   public List<ProductComparisonDto> getComparisonList() {
-    List<WooProductDto> wooProducts = wooClient.getAllProductsFull();
+    List<FullProduct<WooProduct>> wooProducts = wooClient.getAllProductsFull();
 
-    Map<String, FullProduct> skuToProduct = logicomService.getAllProductsFull()
-      .collect(Collectors.toMap((FullProduct fullProduct) -> fullProduct.product().sku(), p -> p));
+    Map<String, FullProduct<LogicomProduct>> skuToProduct = logicomService.getAllProductsFull()
+      .collect(Collectors.toMap((FullProduct<LogicomProduct> fullProduct) -> fullProduct.product().getSku(), p -> p));
 
     List<ProductComparisonDto> comparisonList = new ArrayList<>();
 
-    for (WooProductDto wooProduct : wooProducts) {
-      String sku = extractSkuFromName(wooProduct.name());
+    for (FullProduct<WooProduct> wooProduct : wooProducts) {
+      String sku = extractSkuFromName(wooProduct.product().getName());
       if (sku == null) continue;
 
-      FullProduct logicomProduct = skuToProduct.get(sku);
-
-      double wooPrice = wooProduct.price() != null ? wooProduct.price() : 0.0;
-      double logicomPrice = logicomProduct.price().fullPrice();
+      double wooPrice = wooProduct.price().amount(); // TODO: Think about currency conversion
+      double logicomPrice =  skuToProduct.get(sku).price().amount();
 
       double difference = Math.round((wooPrice - logicomPrice) * 100.0) / 100.0;
       String status = (difference == 0.0) ? "synced" : "to_update";
 
-      comparisonList.add(new ProductComparisonDto(
-        wooProduct.name(),
+      comparisonList.add(new ProductComparisonDto( // TODO: remove dto
+        wooProduct.product().getName(),
         sku,
         wooPrice,
         logicomPrice,
@@ -59,22 +58,23 @@ public class ProductComparisonService {
   }
 
   public ProductComparisonDto getComparisonBySku(String sku) {
-    WooProductDto wooProduct = wooClient.getProductBySku(sku);
-    FullProduct logicomProduct = logicomService.getProductFullBySku(sku);
+    FullProduct<WooProduct> wooProduct = wooClient.getProductBySku(sku);
+    FullProduct<LogicomProduct> logicomProduct = logicomService.getProductFullBySku(sku);
 
     if (wooProduct == null) {
       throw new NotFoundException("Product with SKU " + sku + " not found in WooCommerce.");
     } else if (logicomProduct == null) {
       throw new NotFoundException("Product with SKU " + sku + " not found in LogiCom.");
     } else {
-      double wooPrice = wooProduct.price();
-      double logicomPrice = logicomProduct.price().fullPrice();
+      double wooPrice = wooProduct.price().amount();
+      double logicomPrice = logicomProduct.price().amount();
 
+      // TODO: Add currency conversion if necessary
       double difference = Math.round((wooPrice - logicomPrice) * 100.0) / 100.0;
       String status = difference == 0.0 ? "synced" : "to_update";
 
       return new ProductComparisonDto(
-        wooProduct.name() != null ? wooProduct.name() : logicomProduct.product().name(),
+        wooProduct.product().getName(),
         sku,
         wooPrice,
         logicomPrice,

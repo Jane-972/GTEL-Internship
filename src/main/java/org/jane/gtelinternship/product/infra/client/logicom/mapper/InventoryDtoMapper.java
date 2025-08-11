@@ -1,12 +1,12 @@
 package org.jane.gtelinternship.product.infra.client.logicom.mapper;
 
 
+import org.jane.gtelinternship.logicom.InventoryItemDto;
+import org.jane.gtelinternship.logicom.InventoryResponseDto;
+import org.jane.gtelinternship.logicom.ProductPODto;
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
 import org.jane.gtelinternship.product.domain.model.ProductStock;
 import org.jane.gtelinternship.product.domain.model.PurchaseOrder;
-import org.openapi.example.model.InventoryItemDto;
-import org.openapi.example.model.InventoryResponseDto;
-import org.openapi.example.model.ProductPODto;
 
 import java.util.List;
 

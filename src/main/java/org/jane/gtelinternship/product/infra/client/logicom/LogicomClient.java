@@ -1,15 +1,18 @@
 package org.jane.gtelinternship.product.infra.client.logicom;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.jane.gtelinternship.product.domain.model.Product;
+import org.jane.gtelinternship.logicom.InventoryResponseDto;
+import org.jane.gtelinternship.product.domain.model.FullProduct;
+import org.jane.gtelinternship.product.domain.model.LogicomProduct;
 import org.jane.gtelinternship.product.domain.model.ProductInventory;
 import org.jane.gtelinternship.product.domain.model.ProductPrice;
 import org.jane.gtelinternship.product.infra.client.logicom.dto.GetProductPricesResponseDto;
 import org.jane.gtelinternship.product.infra.client.logicom.dto.GetProductsResponseDto;
 import org.jane.gtelinternship.product.infra.client.logicom.mapper.PriceDtoMapper;
 import org.jane.gtelinternship.product.infra.client.logicom.mapper.ProductDtoMapper;
-import org.openapi.example.model.InventoryResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,22 +21,17 @@ import org.springframework.web.client.RestClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.jane.gtelinternship.product.infra.client.logicom.mapper.InventoryDtoMapper.mapToDomain;
 
 @Service
+@RequiredArgsConstructor
 public class LogicomClient {
   private final RestClient logicomRestClient;
   private final ObjectMapper objectMapper;
 
-
-  public LogicomClient(RestClient logicomRestClient, ObjectMapper objectMapper) {
-    this.logicomRestClient = logicomRestClient;
-    this.objectMapper = objectMapper;
-  }
-
   private static final Logger log = LoggerFactory.getLogger(LogicomClient.class);
-
 
   @SneakyThrows
   public ProductInventory getProductInventory(List<String> skus) {
@@ -50,7 +48,7 @@ public class LogicomClient {
   }
 
   @SneakyThrows
-  public List<Product> getFirst10Products() {
+  public Stream<FullProduct<LogicomProduct>> getFirst10Products() {
     var body = logicomRestClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/api/GetProducts")
@@ -87,7 +85,8 @@ public class LogicomClient {
   }
 
   @SneakyThrows
-  public Product getProductBySku(String sku) {
+  @Nullable
+  public FullProduct<LogicomProduct> getProductBySku(String sku) {
     var response = logicomRestClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/api/GetProducts")
@@ -97,13 +96,13 @@ public class LogicomClient {
       .body(String.class);
 
     var dto = objectMapper.readValue(response, GetProductsResponseDto.class);
-    var productList = ProductDtoMapper.mapToDomain(dto.Message());
+    var productList = ProductDtoMapper.mapToDomain(dto.Message()).toList();
 
-    return productList.isEmpty() ? null : productList.get(0);
+    return productList.isEmpty() ? null : productList.getFirst();
   }
 
   @SneakyThrows
-  public List<Product> getProductsPage(String previousItemNo) {
+  public Stream<FullProduct<LogicomProduct>> getProductsPage(String previousItemNo) {
     var uriBuilder = logicomRestClient.get()
       .uri(uri -> {
         var builder = uri.path("/api/GetProducts");

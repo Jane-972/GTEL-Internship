@@ -18,8 +18,7 @@ public class PriceDtoMapper {
       return null;
     } else {
       return new ProductPrice(
-        amountExclVat,
-        vat,
+        amountExclVat + vat,
         Currency.getInstance(dto.Currency())
       );
     }

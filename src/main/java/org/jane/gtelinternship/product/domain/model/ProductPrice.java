@@ -3,12 +3,8 @@ package org.jane.gtelinternship.product.domain.model;
 import java.util.Currency;
 
 public record ProductPrice(
-  double amountExclVat,
-  double vat,
+  double amount,
   Currency currency
 
 ) {
-  public double fullPrice() {
-    return  amountExclVat + vat;
-  }
 }

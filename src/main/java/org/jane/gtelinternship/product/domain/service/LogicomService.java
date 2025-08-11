@@ -1,8 +1,8 @@
 package org.jane.gtelinternship.product.domain.service;
 
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.jane.gtelinternship.common.exception.NotFoundException;
 import org.jane.gtelinternship.product.domain.model.*;
 import org.jane.gtelinternship.product.infra.client.logicom.LogicomClient;
 import org.springframework.stereotype.Service;
@@ -17,60 +17,36 @@ import static org.jane.gtelinternship.common.util.ListUtil.batchList;
 public class LogicomService {
   private final LogicomClient logicomClient;
 
-  public Stream<Product> getFirst10Products() {
-    return logicomClient.getFirst10Products().stream();
-  }
-  public Stream<FullProduct> getFirst10ProductsFull() {
-    List<Product> products = logicomClient.getFirst10Products();
-    List<String> skus = products.stream().map(Product::sku).toList();
-
-    ProductInventory inventory = logicomClient.getProductInventory(skus);
-    Map<String, ProductPrice> skuToPrice = logicomClient.getProductPrices(skus);
-
-    return products.stream().map(product -> new FullProduct(
-      product,
-      skuToPrice.get(product.sku()),
-      inventory.findBySku(product.sku()).availableQuantity()
-    ));
+  public Stream<FullProduct<LogicomProduct>> getFirst10Products() {
+    return logicomClient.getFirst10Products();
   }
 
-  public FullProduct getProductFullBySku(String sku) {
-    Product product = logicomClient.getProductBySku(sku);
-    if (product == null) {
-      throw new NotFoundException("Product with SKU " + sku + " not found.");
-    }
-
-    ProductInventory inventory = logicomClient.getProductInventory(List.of(sku));
-    Map<String, ProductPrice> prices = logicomClient.getProductPrices(List.of(sku));
-
-    return new FullProduct(
-      product,
-      prices.get(sku),
-      inventory.findBySku(sku).availableQuantity()
-    );
+  @NotNull
+  public FullProduct<LogicomProduct> getProductFullBySku(String sku) {
+    return logicomClient.getProductBySku(sku);
   }
 
-  // TODO: Doesn't work?
-  public Stream<FullProduct> getAllProductsFull() {
-    List<Product> allProducts = new ArrayList<>();
+  // TODO: Not sure it's necessary.
+  public Stream<FullProduct<LogicomProduct>> getAllProductsFull() {
+    List<FullProduct<LogicomProduct>> allProducts = new ArrayList<>();
     String previousItemNo = null;
 
     // Load all products page by page
     var hasNextPage = true;
     while (hasNextPage) {
-      List<Product> page = logicomClient.getProductsPage(previousItemNo);
+      List<FullProduct<LogicomProduct>> page = logicomClient.getProductsPage(previousItemNo).toList();
 
       if (page.isEmpty()) {
         hasNextPage = false;
       } else {
         allProducts.addAll(page);
-        previousItemNo = page.getLast().sku();
+        previousItemNo = page.getLast().product().getSku();
       }
     }
 
     // Collect all SKUs
     List<String> allSkus = allProducts.stream()
-      .map(Product::sku)
+      .map(fullProduct -> fullProduct.product().getSku())
       .toList();
 
     // Batch SKUs
@@ -101,21 +77,15 @@ public class LogicomService {
     // Map products to ProductResponseDto including merged inventory and prices
     return allProducts.stream()
       .map(product -> {
-        ProductPrice price = skuToPrice.get(product.sku());
-        ProductStock stock = combinedInventory.findBySku(product.sku());
+        ProductPrice price = skuToPrice.get(product.product().getSku());
+        ProductStock stock = combinedInventory.findBySku(product.product().getSku());
 
         if (price == null || stock == null) {
           return null;
         } else {
-          return new FullProduct(
-            product,
-            price,
-            stock.availableQuantity()
-          );
+          return product;
         }
       })
       .filter(Objects::nonNull);
   }
-
-
 }

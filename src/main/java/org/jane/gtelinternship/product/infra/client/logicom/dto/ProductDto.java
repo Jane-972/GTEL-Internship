@@ -1,5 +1,7 @@
 package org.jane.gtelinternship.product.infra.client.logicom.dto;
 
+import jakarta.annotation.Nullable;
+
 import java.util.List;
 
 public record ProductDto(
@@ -12,7 +14,7 @@ public record ProductDto(
   String IsEUItem,
   String Barcode,
   String HasVariantProducts,
-  LogicomPriceDto Price,
+  @Nullable LogicomPriceDto Price,
   int IntelPoints,
   String Warranty,
   List<SpecificationDto> Specifications,

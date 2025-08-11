@@ -1,27 +1,25 @@
-package org.jane.gtelinternship.product.domain.model;
+package org.jane.gtelinternship.product.domain.model
 
-import jakarta.annotation.Nullable;
-
-import java.util.Currency;
-import java.util.List;
-
-public record Product(
-  String sku,
-  String name,
-  String brand,
-  String description,
-  String category,
-  @Nullable
-  Double priceExclVat,
-  @Nullable
-  Double vat,
-  Currency currency,
-  List<String> images
-) {
-  Double getTotalPrice() {
-    if (priceExclVat == null || vat == null) {
-      return null;
-    }
-    return priceExclVat + vat;
-  }
+sealed interface Product {
+    val sku: String
+    val name: String
+    val description: String
 }
+
+data class LogicomProduct(
+    override val sku: String,
+    override val name: String,
+    override val description: String,
+    val brand: String,
+    val category: String,
+    val image: List<String>
+) : Product
+
+
+data class WooProduct(
+    val id: Long,
+    override val sku: String,
+    override val name: String,
+    override val description: String,
+) : Product
+

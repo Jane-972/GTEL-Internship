@@ -38,13 +38,16 @@ public class ProductComparisonService {
       String sku = extractSkuFromName(wooProduct.product().getName());
       if (sku == null) continue;
 
+      FullProduct<LogicomProduct> logicomProduct = skuToProduct.get(sku);
+      if (logicomProduct == null) continue; // Skip if SKU not found in Logicom
+
       double wooPrice = wooProduct.price().amount(); // TODO: Think about currency conversion
-      double logicomPrice =  skuToProduct.get(sku).price().amount();
+      double logicomPrice = logicomProduct.price().amount();
 
       double difference = Math.round((wooPrice - logicomPrice) * 100.0) / 100.0;
       String status = (difference == 0.0) ? "synced" : "to_update";
 
-      comparisonList.add(new ProductComparisonDto( // TODO: remove dto
+      comparisonList.add(new ProductComparisonDto(
         wooProduct.product().getName(),
         sku,
         wooPrice,
@@ -53,6 +56,7 @@ public class ProductComparisonService {
         status
       ));
     }
+
 
     return comparisonList;
   }

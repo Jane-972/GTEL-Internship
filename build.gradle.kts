@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     java
@@ -6,8 +7,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.14.0"
 
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.spring") version "2.2.0"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.spring") version "2.0.0"
 }
 
 group = "org.jane"
@@ -120,3 +121,10 @@ openApiGenerate {
         )
     )
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }

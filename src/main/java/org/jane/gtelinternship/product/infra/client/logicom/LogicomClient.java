@@ -45,6 +45,7 @@ public class LogicomClient {
       .body(String.class);
     String productIds = String.join(";", skus);
     log.info("Calling /api/GetInventory with ProductID={}", productIds);
+    System.out.println("This is the body: " + body);
     return mapToDomain(objectMapper.readValue(body, InventoryResponseDto.class));
   }
 
@@ -101,7 +102,7 @@ public class LogicomClient {
 
     if (productList.isEmpty()) {
       log.warn("No product found for SKU: {}", sku);
-      throw new NotFoundException("Product with SKU " + sku + " not found in WooCommerce.");
+      throw new NotFoundException("Product with SKU " + sku + " not found in Logicom.");
     } else {
       return productList.getFirst();
     }

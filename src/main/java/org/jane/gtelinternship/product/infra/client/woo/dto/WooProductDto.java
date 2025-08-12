@@ -24,10 +24,10 @@ public record WooProductDto(
         id,
         sku,
         name,
-        shortDescription
+        shortDescription != null ? shortDescription : ""
       ),
-      new ProductPrice(price, dirham),
-      this.stockQuantity
+      new ProductPrice(price != null ? price : 0.0, dirham),
+      this.stockQuantity != null ? this.stockQuantity : 0
     );
   }
 }

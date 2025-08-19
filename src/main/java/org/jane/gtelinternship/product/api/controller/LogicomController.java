@@ -6,33 +6,61 @@ import org.jane.gtelinternship.product.api.dto.response.ProductResponseDto;
 import org.jane.gtelinternship.product.domain.model.FullProduct;
 import org.jane.gtelinternship.product.domain.model.LogicomProduct;
 import org.jane.gtelinternship.product.domain.service.LogicomService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.jane.gtelinternship.product.domain.service.ProductCacheService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/logicom")
 @RequiredArgsConstructor
 public class LogicomController {
+  // Inject cache service instead of direct service
+  private final ProductCacheService productCacheService;
   private final LogicomService logicomService;
 
   @GetMapping("/products")
-  public Stream<ProductResponseDto> getFirst10ProductsFull() {
-    return logicomService.getFirst10Products().map(ProductResponseDto::fromModel);
+  public List<ProductResponseDto> getFirst10ProductsFull() {
+    // BEFORE: logicomService.getFirst10Products() -slow-
+    // AFTER: Get from cache and limit to 10 -FAST-
+    return productCacheService.getAllProducts()
+      .stream()
+      .limit(10)
+      .map(ProductResponseDto::fromModel)
+      .toList();
   }
 
   @GetMapping("/products/{sku}")
   public ProductResponseDto getProductFullBySku(@PathVariable String sku) {
-    FullProduct<LogicomProduct> fullProduct = logicomService.getProductFullBySku(sku);
-    return ProductResponseDto.fromModel(fullProduct);
+    return productCacheService.getProductBySku(sku)
+      .map(ProductResponseDto::fromModel)
+      .orElseGet(() -> {
+        // Fallback to service only on cache miss
+        FullProduct<LogicomProduct> full = logicomService.getProductFullBySku(sku);
+        return ProductResponseDto.fromModel(full);
+      });
   }
 
   @GetMapping("/products/all")
-  public Stream<ProductResponseDto> getAllProductsFull() {
-    return logicomService.getAllProductsFull().map(ProductResponseDto::fromModel);
+  public List<ProductResponseDto> getAllProductsFull() {
+    return productCacheService.getAllProducts()
+      .stream()
+      .map(ProductResponseDto::fromModel)
+      .toList();
+  }
+
+  // A manual refresh endpoint
+  @PostMapping("/products/refresh")
+  public ResponseEntity<String> refreshProducts() {
+    productCacheService.forceRefresh();
+    return ResponseEntity.ok("Product refresh started in background");
+  }
+
+  // Check cache health
+  @GetMapping("/cache/status")
+  public ProductCacheService.CacheStatus getCacheStatus() {
+    return productCacheService.getCacheStatus();
   }
 }

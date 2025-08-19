@@ -64,3 +64,4 @@ public class LogicomController {
     return productCacheService.getCacheStatus();
   }
 }
+

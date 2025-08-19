@@ -58,6 +58,7 @@ public class ProductCacheService {
     return Optional.ofNullable(productBySkuCache.get(sku));
   }
 
+
   // This is where the long operation will happen (in background)
   private void refreshAllProducts() {
     if (isRefreshing) {

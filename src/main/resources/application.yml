@@ -4,11 +4,18 @@ spring:
 
 server:
   port: 8089
+  error:
+    include-message: always
+    include-binding-errors: always
 
 #Logs
 logging:
   level:
     org.springframework.web: DEBUG
+    org.springframework.web.client.RestClient: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.apache.http.wire: DEBUG
+    org.apache.http.headers: DEBUG
 
 logicom:
   api:
@@ -20,6 +27,6 @@ logicom:
 
 woocommerce:
     api:
-      url: secret
-      key: 1234
-      secret: secret-123
+      url: https://gtelstore.ma
+      key: ck_d902d05533429411d140e2c61b0471a5b3f16097
+      secret: cs_0793e120ea2c088bb0aa6e10a930156172f1d316

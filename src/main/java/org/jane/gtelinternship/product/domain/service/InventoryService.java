@@ -17,27 +17,48 @@ import java.util.List;
 public class InventoryService {
   private final LogicomClient logicomClient;
   private final WooClient wooClient;
+  private final ProductCacheService productCacheService;
   private static final Logger logger = LoggerFactory.getLogger(InventoryService.class);
 
-  public InventoryService(LogicomClient logicomClient, WooClient wooClient) {
+  public InventoryService(LogicomClient logicomClient, WooClient wooClient, ProductCacheService productCacheService) {
     this.logicomClient = logicomClient;
     this.wooClient = wooClient;
+    this.productCacheService = productCacheService;
   }
 
+  // Get inventory from cache
   public ProductInventory getProductInventory(List<String> skus) {
-    return logicomClient.getProductInventory(skus);
+    List<ProductStock> stocks = productCacheService.getAllProducts()
+      .stream()
+      .filter(product -> skus.contains(product.product().getSku()))
+      .map(fullProduct -> new ProductStock(
+        fullProduct.product().getSku(),
+        fullProduct.availableStock(),
+        List.of()
+      ))
+      .toList();
+
+    return new ProductInventory(stocks);
   }
 
+  // Check availability from cache
   public boolean isProductAvailable(String sku) {
-    ProductInventory inventory = getProductInventory(List.of(sku));
-    ProductStock stock = inventory.findBySku(sku);
-    return stock != null && stock.isInStock();
+    return productCacheService.getAllProducts()
+      .stream()
+      .filter(product -> product.product().getSku().equals(sku))
+      .findFirst()
+      .map(product -> product.availableStock() > 0)
+      .orElse(false);
   }
 
+  // Get quantity from cache
   public int getAvailableQuantity(String sku) {
-    ProductInventory inventory = getProductInventory(List.of(sku));
-    ProductStock stock = inventory.findBySku(sku);
-    return stock != null ? stock.availableQuantity() : 0;
+    return productCacheService.getAllProducts()
+      .stream()
+      .filter(product -> product.product().getSku().equals(sku))
+      .findFirst()
+      .map(product -> product.availableStock())
+      .orElse(0);
   }
 
   public void updateInventoryFromLogicom(List<String> skus) {
@@ -64,3 +85,5 @@ public class InventoryService {
     }
   }
 }
+
+

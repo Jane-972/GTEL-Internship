@@ -2,6 +2,7 @@ package org.jane.gtelinternship.product.domain.model;
 
 import java.util.List;
 
+// TODO: Is it used
 public record ProductStock(
   String sku,
   int availableQuantity,

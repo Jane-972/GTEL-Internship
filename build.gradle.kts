@@ -1,8 +1,14 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     java
     id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.14.0"
+
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.spring") version "2.0.0"
 }
 
 group = "org.jane"
@@ -80,15 +86,17 @@ tasks {
     withType<JavaCompile> {
         dependsOn(openApiGenerate)
     }
+
+    withType<KotlinCompile> {
+        dependsOn(openApiGenerate)
+    }
 }
 
 openApiGenerate {
     generatorName.set("java")
     inputSpec.set("$rootDir/openapi/logicom/logicomApi.yaml")
     outputDir.set("$buildDir/generated-api/logicom")
-    apiPackage.set("org.openapi.example.api")
-    modelPackage.set("org.openapi.example.model")
-    invokerPackage.set("org.openapi.example.invoker")
+    modelPackage.set("org.jane.gtelinternship.logicom")
     modelNameSuffix.set("Dto")
 
     library.set("restclient")
@@ -113,3 +121,10 @@ openApiGenerate {
         )
     )
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }

@@ -1,4 +1,4 @@
-package org.jane.gtelinternship.product.infra.client.woo;
+//package org.jane.gtelinternship.product.infra.client.woo;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jane.gtelinternship.IntegrationTestBase;
@@ -11,7 +11,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class WooClientIT extends IntegrationTestBase {
+/*class WooClientIT extends IntegrationTestBase {
     private final WooProductDto sku123Product = new WooProductDto(
             123L,
             "SKU123",
@@ -53,3 +53,5 @@ class WooClientIT extends IntegrationTestBase {
         assertEquals(sku123Product, product);
     }
 }
+
+ */

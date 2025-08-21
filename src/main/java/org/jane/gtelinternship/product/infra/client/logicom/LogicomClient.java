@@ -22,6 +22,7 @@ import org.springframework.web.client.RestClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.jane.gtelinternship.product.infra.client.logicom.mapper.InventoryDtoMapper.mapToDomain;
@@ -34,29 +35,39 @@ public class LogicomClient {
 
   private static final Logger log = LoggerFactory.getLogger(LogicomClient.class);
 
+  private <T> T measureTime(String operation, Supplier<T> supplier) {
+    long start = System.currentTimeMillis();
+    try {
+      return supplier.get();
+    } finally {
+      long end = System.currentTimeMillis();
+      log.info("{} took {} ms", operation, (end - start));
+    }
+  }
+
   @SneakyThrows
   public ProductInventory getProductInventory(List<String> skus) {
-    var body = logicomRestClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/api/GetInventory")
-        .queryParam("ProductID", String.join(";", skus))
-        .build())
-      .retrieve()
-      .body(String.class);
     String productIds = String.join(";", skus);
-    log.info("Calling /api/GetInventory with ProductID={}", productIds);
-    System.out.println("This is the body: " + body);
+    String body = measureTime("GET /api/GetInventory for " + productIds, () ->
+      logicomRestClient.get()
+        .uri(uriBuilder -> uriBuilder
+          .path("/api/GetInventory")
+          .queryParam("ProductID", productIds)
+          .build())
+        .retrieve()
+        .body(String.class)
+    );
     return mapToDomain(objectMapper.readValue(body, InventoryResponseDto.class));
   }
 
   @SneakyThrows
   public Stream<FullProduct<LogicomProduct>> getFirst10Products() {
-    var body = logicomRestClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/api/GetProducts")
-        .build())
-      .retrieve()
-      .body(String.class);
+    String body = measureTime("GET /api/GetProducts first 10", () ->
+      logicomRestClient.get()
+        .uri(uriBuilder -> uriBuilder.path("/api/GetProducts").build())
+        .retrieve()
+        .body(String.class)
+    );
 
     var responseDto = objectMapper.readValue(body, GetProductsResponseDto.class);
     return ProductDtoMapper.mapToDomain(responseDto.Message());
@@ -64,24 +75,22 @@ public class LogicomClient {
 
   @SneakyThrows
   public Map<String, ProductPrice> getProductPrices(List<String> skus) {
-    var response = logicomRestClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/api/GetPrice")
-        .queryParam("ProductID", String.join(";", skus))
-        .build())
-      .retrieve()
-      .body(String.class);
+    String skuList = String.join(";", skus);
+    String response = measureTime("GET /api/GetPrice for " + skuList, () ->
+      logicomRestClient.get()
+        .uri(uriBuilder -> uriBuilder
+          .path("/api/GetPrice")
+          .queryParam("ProductID", skuList)
+          .build())
+        .retrieve()
+        .body(String.class)
+    );
 
     var prices = objectMapper.readValue(response, GetProductPricesResponseDto.class);
-
-    return prices.Message()
-      .stream()
+    return prices.Message().stream()
       .collect(
         HashMap::new,
-        (map, elem) -> map.put(
-          elem.SKU(),
-          PriceDtoMapper.from(elem)
-        ),
+        (map, elem) -> map.put(elem.SKU(), PriceDtoMapper.from(elem)),
         HashMap::putAll
       );
   }
@@ -89,13 +98,15 @@ public class LogicomClient {
   @SneakyThrows
   @NotNull
   public FullProduct<LogicomProduct> getProductBySku(String sku) {
-    var response = logicomRestClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/api/GetProducts")
-        .queryParam("ProductId", sku)
-        .build())
-      .retrieve()
-      .body(String.class);
+    String response = measureTime("GET /api/GetProducts by SKU " + sku, () ->
+      logicomRestClient.get()
+        .uri(uriBuilder -> uriBuilder
+          .path("/api/GetProducts")
+          .queryParam("ProductId", sku)
+          .build())
+        .retrieve()
+        .body(String.class)
+    );
 
     var dto = objectMapper.readValue(response, GetProductsResponseDto.class);
     var productList = ProductDtoMapper.mapToDomain(dto.Message()).toList();
@@ -103,26 +114,26 @@ public class LogicomClient {
     if (productList.isEmpty()) {
       log.warn("No product found for SKU: {}", sku);
       throw new NotFoundException("Product with SKU " + sku + " not found in Logicom.");
-    } else {
-      return productList.getFirst();
     }
+    return productList.getFirst();
   }
 
   @SneakyThrows
   public Stream<FullProduct<LogicomProduct>> getProductsPage(String previousItemNo) {
-    var uriBuilder = logicomRestClient.get()
-      .uri(uri -> {
-        var builder = uri.path("/api/GetProducts");
-        if (previousItemNo != null && !previousItemNo.isBlank()) {
-          builder.queryParam("PreviousItemNo", previousItemNo);
-        }
-        return builder.build();
-      })
-      .retrieve()
-      .body(String.class);
+    String body = measureTime("GET /api/GetProducts page with prev=" + previousItemNo, () ->
+      logicomRestClient.get()
+        .uri(uri -> {
+          var builder = uri.path("/api/GetProducts");
+          if (previousItemNo != null && !previousItemNo.isBlank()) {
+            builder.queryParam("PreviousItemNo", previousItemNo);
+          }
+          return builder.build();
+        })
+        .retrieve()
+        .body(String.class)
+    );
 
-    var responseDto = objectMapper.readValue(uriBuilder, GetProductsResponseDto.class);
+    var responseDto = objectMapper.readValue(body, GetProductsResponseDto.class);
     return ProductDtoMapper.mapToDomain(responseDto.Message());
   }
-
 }

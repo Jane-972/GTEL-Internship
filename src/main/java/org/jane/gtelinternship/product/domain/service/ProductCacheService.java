@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jane.gtelinternship.product.domain.model.FullProduct;
 import org.jane.gtelinternship.product.domain.model.LogicomProduct;
+import org.jane.gtelinternship.product.domain.model.WooProduct;
+import org.jane.gtelinternship.product.infra.client.woo.WooClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +17,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 
 @Service
@@ -23,16 +24,18 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ProductCacheService {
   private final LogicomService logicomService;
+  private final WooClient wooClient;
 
-  // Storing all products in memory
-  private volatile List<FullProduct<LogicomProduct>> allProductsCache = new ArrayList<>();
-  private volatile ConcurrentHashMap<String, FullProduct<LogicomProduct>> productBySkuCache = new ConcurrentHashMap<>();
+  // Cache for both product types
+  private volatile List<FullProduct<LogicomProduct>> logicomProductsCache = new ArrayList<>();
+  private volatile List<FullProduct<WooProduct>> wooProductsCache = new ArrayList<>();
+  private volatile ConcurrentHashMap<String, FullProduct<LogicomProduct>> logicomBySkuCache = new ConcurrentHashMap<>();
   private volatile LocalDateTime lastRefresh = LocalDateTime.MIN;
   private volatile boolean isRefreshing = false;
 
   @PostConstruct
   public void initializeCache() {
-    log.info("Initializing product cache on startup...");
+    log.info("🚀 Initializing product cache on startup...");
     // Load cache immediately on startup (async so startup isn't blocked)
     CompletableFuture.runAsync(this::refreshAllProducts);
   }
@@ -44,18 +47,28 @@ public class ProductCacheService {
     refreshAllProducts();
   }
 
+  public List<FullProduct<WooProduct>> getAllWooProducts() {
+    log.debug("Serving {} WooCommerce products from cache", wooProductsCache.size());
+    return new ArrayList<>(wooProductsCache);
+  }
+
   // Manual refresh for when we know data changed
   public CompletableFuture<Void> forceRefresh() {
     log.info("Manual refresh requested");
     return CompletableFuture.runAsync(this::refreshAllProducts);
   }
   public List<FullProduct<LogicomProduct>> getAllProducts() {
-    log.debug("Serving {} products from cache", allProductsCache.size());
-    return new ArrayList<>(allProductsCache); // Return copy for safety
+    log.debug("Serving {} products from cache", logicomProductsCache.size());
+    return new ArrayList<>(logicomProductsCache); // Return copy for safety
   }
 
   public Optional<FullProduct<LogicomProduct>> getProductBySku(String sku) {
-    return Optional.ofNullable(productBySkuCache.get(sku));
+    FullProduct<LogicomProduct> cached = logicomBySkuCache.get(sku);
+    if (cached != null) {
+      log.debug("Serving product {} from cache", sku);
+      return Optional.of(cached);
+    }
+    return Optional.empty();
   }
 
 
@@ -70,21 +83,27 @@ public class ProductCacheService {
       isRefreshing = true;
       log.info("Starting background refresh of all products...");
 
-      // This is the expensive call
-      List<FullProduct<LogicomProduct>> freshProducts =
+      // Refresh Logicom products
+      List<FullProduct<LogicomProduct>> freshLogicomProducts =
         logicomService.getAllProductsFull().toList();
 
-      // Atomically update the cache
-      allProductsCache = freshProducts;
+      // Refresh WooCommerce products
+      List<FullProduct<WooProduct>> freshWooProducts =
+        wooClient.getAllProductsFull();
 
-      // Also update the SKU-based cache
-      productBySkuCache.clear();
-      freshProducts.forEach(product ->
-        productBySkuCache.put(product.product().getSku(), product));
+      // Atomically update both caches
+      logicomProductsCache = freshLogicomProducts;
+      wooProductsCache = freshWooProducts;
+
+      // Also update the SKU-based cache for Logicom
+      logicomBySkuCache.clear();
+      freshLogicomProducts.forEach(product ->
+        logicomBySkuCache.put(product.product().getSku(), product));
 
       lastRefresh = LocalDateTime.now();
 
-      log.info("Completed refresh of {} products", freshProducts.size());
+      log.info("Completed refresh of {} Logicom + {} WooCommerce products",
+        freshLogicomProducts.size(), freshWooProducts.size());
 
     } catch (Exception e) {
       log.error("Failed to refresh products cache", e);
@@ -93,23 +112,19 @@ public class ProductCacheService {
     }
   }
 
-  // Returns a stream over all products (from the List cache)
-  public Stream<FullProduct<LogicomProduct>> streamAllProducts() {
-    return allProductsCache.stream();
-  }
-
-
   // Health check to see cache status
   public CacheStatus getCacheStatus() {
     return new CacheStatus(
-      allProductsCache.size(),
+      logicomProductsCache.size(),
+      wooProductsCache.size(),
       lastRefresh,
       isRefreshing
     );
   }
 
   public record CacheStatus(
-    int productCount,
+    int logicomProductCount,
+    int wooProductCount,
     LocalDateTime lastRefresh,
     boolean isRefreshing
   ) {}

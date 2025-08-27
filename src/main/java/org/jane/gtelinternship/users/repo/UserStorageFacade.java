@@ -103,4 +103,15 @@ public class UserStorageFacade {
         return userRepo.save(userEntity).toModel();
     }
 
+    @Transactional
+    public UserModel deleteUserProfile(UUID userId) {
+        UserEntity userEntity = userRepo.findById(userId)
+          .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserModel deletedUser = userEntity.toModel();
+        userRepo.delete(userEntity);
+
+        return deletedUser;
+    }
+
 }

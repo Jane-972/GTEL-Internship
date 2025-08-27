@@ -45,4 +45,8 @@ public class UserService {
     public UserModel updateUserProfile(UUID userId, PatchUserModel updateRequest) {
         return userStorageFacade.updateUserProfile(userId, updateRequest);
     }
+
+    public UserModel deleteUserProfile(UUID userId){
+        return userStorageFacade.deleteUserProfile(userId);
+    }
 }

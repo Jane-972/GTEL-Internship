@@ -48,6 +48,14 @@ public class UserController {
     return UserOutputDTO.fromModel(updatedUser);
   }
 
+  @DeleteMapping("{id}")
+  public UserOutputDTO deleteUserProfile(
+    @PathVariable UUID id
+  ){
+    UserModel deletedUser = userService.deleteUserProfile(id);
+    return UserOutputDTO.fromModel(deletedUser);
+  }
+
   @GetMapping("/me")
   public UserOutputDTO getProfile(Principal principal) {
     UserModel user = userService.getCurrentUser(principal);

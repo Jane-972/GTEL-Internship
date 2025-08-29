@@ -26,7 +26,6 @@ public class LogicomService {
     return logicomClient.getProductBySku(sku);
   }
 
-  // TODO: Not sure it's necessary.
   public Stream<FullProduct<LogicomProduct>> getAllProductsFull() {
     List<FullProduct<LogicomProduct>> allProducts = new ArrayList<>();
     String previousItemNo = null;
@@ -52,7 +51,6 @@ public class LogicomService {
     // Batch SKUs
     List<List<String>> skuBatches = batchList(allSkus, 30);
 
-    // TODO: Move and adjust
     // Fetch inventory in batches and merge results
     List<ProductStock> allProductStocks = skuBatches
       .stream()
@@ -62,7 +60,6 @@ public class LogicomService {
       .flatMap(inventory -> inventory.products().stream())
       .toList();
 
-    // TODO: move and avoid dto
     // Fetch prices in batches and merge results
     Map<String, ProductPrice> skuToPrice = skuBatches
       .stream()
@@ -74,7 +71,6 @@ public class LogicomService {
 
     ProductInventory combinedInventory = new ProductInventory(allProductStocks);
 
-    // Map products to ProductResponseDto including merged inventory and prices
     return allProducts.stream()
       .map(product -> {
         ProductPrice price = skuToPrice.get(product.product().getSku());

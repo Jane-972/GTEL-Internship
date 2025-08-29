@@ -5,7 +5,7 @@ public class LogicomPriceUtil {
     try {
       return Double.parseDouble(priceStr.replace(",", ""));
     } catch (NumberFormatException e) {
-      // No need to log for now
+      // No need to log
       return null;
     }
   }

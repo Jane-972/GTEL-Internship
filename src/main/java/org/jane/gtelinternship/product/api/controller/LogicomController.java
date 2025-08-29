@@ -23,8 +23,6 @@ public class LogicomController {
 
   @GetMapping("/products")
   public List<ProductResponseDto> getFirst10ProductsFull() {
-    // BEFORE: logicomService.getFirst10Products() -slow-
-    // AFTER: Get from cache and limit to 10 -FAST-
     return productCacheService.getAllProducts()
       .stream()
       .limit(10)

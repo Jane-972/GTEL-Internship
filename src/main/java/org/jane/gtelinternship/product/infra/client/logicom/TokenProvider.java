@@ -11,7 +11,7 @@ import static org.jane.gtelinternship.common.encrypt.EncryptionUtil.encrypt;
 
 @Service
 public class TokenProvider {
-  private static final long MAX_TOKEN_LIFE_MS = 55 * 1000; // 60 seconds minus 5 seconds buffer. In milliseconds.
+  private static final long MAX_TOKEN_LIFE_MS = 55 * 1000; //55 seconds converted to milliseconds (60 seconds minus 5 seconds buffer)
   private final LogicomClientConfig config;
   private final DateTimeProvider dateTimeProvider;
   private final RestClient restClient = RestClient.create();

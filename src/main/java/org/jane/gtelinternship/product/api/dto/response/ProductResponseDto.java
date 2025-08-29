@@ -18,7 +18,7 @@ public record ProductResponseDto(
       model.product().getSku(),
       model.product().getName(),
       model.product().getBrand(),
-      model.product().getImage(), // Mapping images that were forgotten
+      model.product().getImage(),
       PriceDto.fromModel(model.price()),
       model.availableStock()
     );

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ProductComparisonService {
 
   private final WooClient wooClient;
-  private final ProductCacheService productCacheService; // Use cache instead of LogicomService
+  private final ProductCacheService productCacheService; // Use cache
 
   public ProductComparisonService(WooClient wooClient, ProductCacheService productCacheService) {
     this.wooClient = wooClient;

@@ -33,7 +33,7 @@ public class ProductDtoMapper {
       dto.Category(),
       dto.Images()
     ),
-      new ProductPrice(parsePrice(price.PriceExclVAT() + price.VAT()), Currency.getInstance(price.Currency())), // TODO: Handle null prices
+      new ProductPrice(parsePrice(price.PriceExclVAT() + price.VAT()), Currency.getInstance(price.Currency())),
       dto.Inventory().Quantity()
     );
   }

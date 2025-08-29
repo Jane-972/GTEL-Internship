@@ -48,6 +48,16 @@ public class UserController {
     return UserOutputDTO.fromModel(updatedUser);
   }
 
+  @PatchMapping("{id}/approval")
+  public UserOutputDTO updateUserApproval(
+    @PathVariable UUID id,
+    @RequestParam boolean approved
+  ) {
+    UserModel updatedUser = userService.updateUserApproval(id, approved);
+    return UserOutputDTO.fromModel(updatedUser);
+  }
+
+
   @DeleteMapping("{id}")
   public UserOutputDTO deleteUserProfile(
     @PathVariable UUID id

@@ -34,8 +34,8 @@ public class UserService {
         return userStorageFacade.fetchAllUsers();
     }
 
-    public UserModel approveUser(UUID userId) {
-        return userStorageFacade.updateUserApproval(userId, true);
+    public UserModel updateUserApproval(UUID userId, boolean approved) {
+        return userStorageFacade.updateUserApproval(userId, approved);
     }
 
     public UserModel getCurrentUser(Principal principal) {

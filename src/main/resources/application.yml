@@ -19,14 +19,15 @@ logging:
 
 logicom:
   api:
-    url: https://quickconnect.logicompartners.com
-    customer-id: 2073
-    consumer-key: CONSUMER_KEY
-    consumer-secret: CONSUMER_SECRET
-    access-token-key: TOKEN_KEY
+    url: ${LOGICOM_API_URL}
+    customer-id: ${LOGICOM_CUSTOMER_ID}
+    consumer-key: ${LOGICOM_CONSUMER_KEY}
+    consumer-secret: ${LOGICOM_CONSUMER_SECRET}
+    access-token-key: ${LOGICOM_ACCESS_TOKEN_KEY}
 
 woocommerce:
-    api:
-      url: https://gtelstore.ma
-      key: WOO_KEY
-      secret: WOO_SECRET
+  api:
+    url: ${WOOCOMMERCE_API_URL}
+    key: ${WOOCOMMERCE_KEY}
+    secret: ${WOOCOMMERCE_SECRET}
+

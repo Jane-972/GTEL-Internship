@@ -35,7 +35,7 @@ public class ProductCacheService {
 
   @PostConstruct
   public void initializeCache() {
-    log.info("🚀 Initializing product cache on startup...");
+    log.info("Initializing product cache on startup...");
     // Load cache immediately on startup (async so startup isn't blocked)
     CompletableFuture.runAsync(this::refreshAllProducts);
   }

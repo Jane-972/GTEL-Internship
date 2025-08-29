@@ -12,6 +12,7 @@ public record UserOutputDTO(
         String firstName,
         String lastName,
         String email,
+        boolean approved,
         UserRole role
 ) {
     public static UserOutputDTO fromModel(UserModel userModel) {
@@ -20,6 +21,7 @@ public record UserOutputDTO(
                 userModel.firstName(),
                 userModel.lastName(),
                 userModel.email(),
+                userModel.approved(),
                 userModel.role()
         );
     }

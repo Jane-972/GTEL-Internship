@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: GTEL-Internship
+  flyway:
+    url: jdbc:postgresql://localhost:15432/gtel_internship
+    user: jane
+    password: jane
+  datasource:
+    url: jdbc:postgresql://localhost:15432/gtel_internship
+    username: jane
+    password: jane
+
+server:
+  port: 8089
+  error:
+    include-message: always
+    include-binding-errors: always

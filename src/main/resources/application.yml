@@ -1,33 +1,14 @@
 spring:
   application:
     name: GTEL-Internship
+  flyway:
+    url: ${DB_URL}
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
 server:
-  port: 8089
-  error:
-    include-message: always
-    include-binding-errors: always
-
-#Logs
-logging:
-  level:
-    org.springframework.web: DEBUG
-    org.springframework.web.client.RestClient: DEBUG
-    org.springframework.web.client.RestTemplate: DEBUG
-    org.apache.http.wire: DEBUG
-    org.apache.http.headers: DEBUG
-
-logicom:
-  api:
-    url: ${LOGICOM_API_URL}
-    customer-id: ${LOGICOM_CUSTOMER_ID}
-    consumer-key: ${LOGICOM_CONSUMER_KEY}
-    consumer-secret: ${LOGICOM_CONSUMER_SECRET}
-    access-token-key: ${LOGICOM_ACCESS_TOKEN_KEY}
-
-woocommerce:
-  api:
-    url: ${WOOCOMMERCE_API_URL}
-    key: ${WOOCOMMERCE_KEY}
-    secret: ${WOOCOMMERCE_SECRET}
-
+  port: 8080

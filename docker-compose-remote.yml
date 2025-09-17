@@ -1,0 +1,20 @@
+services:
+  service:
+    image: jane279/gtel-internship:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/gtel_internship
+      DB_USERNAME: jane
+      DB_PASSWORD: jane
+  db:
+    image: postgres:13
+    container_name: gtel_internship
+    environment:
+      POSTGRES_USER: jane
+      POSTGRES_PASSWORD: jane
+      POSTGRES_DB: gtel_internship
+    ports:
+      - "15432:5432" # external access

@@ -7,6 +7,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.14.0"
 
+    id("com.google.cloud.tools.jib") version "3.4.5"
+
     kotlin("jvm") version "2.0.0"
     kotlin("plugin.spring") version "2.0.0"
 }
@@ -77,6 +79,25 @@ dependencyManagement {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
     }
 }
+
+
+jib {
+    from {
+        image = "eclipse-temurin:21-jre"
+    }
+    to {
+        image = "jane279/gtel-internship"
+        auth {
+            username = System.getenv("DOCKER_USERNAME")
+            password = System.getenv("DOCKER_TOKEN")
+        }
+    }
+    container {
+        mainClass = "org.jane.gtelinternship.GtelInternshipApplication"
+        ports = listOf("8089")
+    }
+}
+
 
 tasks {
     withType<Test> {
